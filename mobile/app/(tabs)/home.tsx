@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
   // Para navegar a otras pantallas con el nuevo router
-  const router = useRouter();
+  const router = useRouter(); // Corregido
 
   return (
     <View style={styles.container}>
@@ -44,11 +44,7 @@ export default function HomeScreen() {
           {/* Botón de Iniciar sesión */}
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={() => {
-              // Si quieres navegar a otra pantalla, crea app/login.tsx y usa:
-              // router.push('/login');
-              console.log('Ir a Iniciar Sesión');
-            }}
+            onPress={() => router.push('/inicio_ses')} // Navega a la pantalla de inicio de sesión
           >
             <Text style={styles.loginButtonText}>Iniciar sesión</Text>
           </TouchableOpacity>
@@ -58,9 +54,7 @@ export default function HomeScreen() {
             <Text style={styles.registerText}>¿No estás registrado? </Text>
             <TouchableOpacity
               onPress={() => {
-                // Si tienes app/register.tsx, puedes hacer:
-                // router.push('/register');
-                console.log('Ir a Registro');
+                router.push('/registro'); // Navega a la pantalla de registro
               }}
             >
               <Text style={styles.registerLink}>Regístrate</Text>
