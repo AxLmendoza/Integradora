@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     height: 60,
-    backgroundColor: '#fff', // Cambiado a blanco
+    backgroundColor: '#ffa500', // Ajusta el color a tu preferencia
     position: 'absolute',
     bottom: 0,
     left: 0,
