@@ -46,7 +46,7 @@ const RegisterScreen = () => {
                     </View>
                     <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#666" secureTextEntry />
                     <TextInput style={styles.input} placeholder="Confirmar contraseña" placeholderTextColor="#666" secureTextEntry />
-                    <TouchableOpacity style={styles.button}>
+                    <TouchableOpacity style={styles.button} onPress={() => router.push('./inicio_ses')}>
                         <Text style={styles.buttonText}>Crear cuenta</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => router.push('/inicio_ses')}>

@@ -105,21 +105,7 @@ export default function Questions() {
             </View>
           </Modal>
 
-          {/* Barra de navegación inferior */}
-          <View style={styles.navbar}>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/grupos')}>
-              <Ionicons name="home-outline" size={28} color="#000" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/preguntas')}>
-              <Ionicons name="help-circle-outline" size={28} color="#000" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/chat')}>
-              <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/subir_Ar')}>
-              <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
-            </TouchableOpacity>
-          </View>
+          
         </View>
       </ImageBackground>
     </View>

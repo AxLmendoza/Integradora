@@ -6,34 +6,24 @@ import {
   ImageBackground,
   TouchableOpacity,
   Image,
-  TextInput,
-  Keyboard
+  TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = React.useState('')
-  ;
-
-  const handleSearchSubmit = () => {
-    if (searchQuery.trim() !== '') {
-      router.push(`/buscar_pre?query=${searchQuery}`);
-      Keyboard.dismiss(); // Ocultar el teclado después de enviar la búsqueda
-    }
-  };
 
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('../../assets/images/fondo.jpeg')}
+        source={require('../../assets/images/fondo.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
         <View style={styles.overlay} />
 
-        {/* Encabezado con iconos */}
+        
         <View style={styles.header}>
           <TouchableOpacity>
             <Ionicons name="menu" size={30} color="#000" />
@@ -43,46 +33,35 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Título */}
         <Text style={styles.title}>¡REALIZA UNA PREGUNTA!</Text>
-
-        {/* Barra de búsqueda */}
         <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar"
-            placeholderTextColor="#666"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={handleSearchSubmit} // Detecta cuando presionan Enter
-            returnKeyType="search"
-          />
-          <TouchableOpacity onPress={handleSearchSubmit}>
-            <Ionicons name="search" size={20} color="#000" style={styles.searchIcon} />
-          </TouchableOpacity>
+          <TextInput style={styles.searchInput} placeholder="Buscar" />
+          <Ionicons name="search" size={20} color="#000" style={styles.searchIcon} />
         </View>
 
-        {/* Imagen de Grupos */}
         <View style={styles.contentContainer}>
-          <TouchableOpacity onPress={() => router.push('/grupos')}>
+          <TouchableOpacity onPress={() => router.push('./grupos')}>
             <Image
-              source={require('../../assets/images/grupos.jpeg')}
+              source={require('../../assets/images/grupos.jpg')}
               style={styles.groupsImage}
               resizeMode="contain"
             />
           </TouchableOpacity>
         </View>
 
-        {/* Barra de navegación inferior */}
+
         <View style={styles.navbar}>
-          <TouchableOpacity onPress={() => router.push('/grupos')}>
-            <Ionicons name="home-outline" size={28} color="#000" />
+          <TouchableOpacity onPress={() => router.push('/Inicio')}>
+            <Ionicons name="home-outline" size={30} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/chat')}>
-            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
+          <TouchableOpacity onPress={() => router.push('/')}>
+            <Ionicons name="chatbubbles" size={30} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/elegir')}>
-            <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
+          <TouchableOpacity onPress={() => router.push('./chat')}>
+            <Ionicons name="chatbox" size={30} color="#000" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('./subir')}>
+            <Ionicons name="cloud-upload"size={30} color="#000" />
           </TouchableOpacity>
         </View>
       </ImageBackground>

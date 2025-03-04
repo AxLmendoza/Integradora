@@ -38,7 +38,7 @@ const LoginScreen = () => {
             <Text style={styles.forgotPassword}>Olvidé mi contraseña</Text>
           </TouchableOpacity>
           {/* Se agrega onPress al botón de Iniciar sesión */}
-          <TouchableOpacity style={styles.button} onPress={() => router.push('/(tabs)/grupos')}>
+          <TouchableOpacity style={styles.button} onPress={() => router.push('./grupos')}>
             <Text style={styles.buttonText}>Iniciar sesión</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/registro')}>

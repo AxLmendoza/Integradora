@@ -9,6 +9,7 @@ import {
 import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
+  
   const router = useRouter(); // Para navegar a otras pantallas
 
   return (
