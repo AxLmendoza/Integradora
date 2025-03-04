@@ -19,7 +19,7 @@ export default function ComunidadChipmunksScreen() {
           <TouchableOpacity onPress={() => router.push('/elegir')}>
             <Ionicons name="arrow-back" size={30} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/usuario')}>
             <Ionicons name="person" size={30} color="#000" />
           </TouchableOpacity>
         </View>
@@ -64,10 +64,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     padding: 20, // Asegura un padding alrededor de los elementos
   },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    marginBottom: 20 
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 35,
   },
   title: { 
     fontSize: 22, 

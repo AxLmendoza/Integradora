@@ -21,7 +21,7 @@ export default function VerPregun() {
         <TouchableOpacity onPress={() => router.push('/buscar_pre')}>
           <Ionicons name="arrow-back" size={30} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/usuario')}>
           <Ionicons name="person" size={30} color="#000" />
         </TouchableOpacity>
       </View>

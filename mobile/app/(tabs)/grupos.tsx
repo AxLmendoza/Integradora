@@ -35,10 +35,10 @@ export default function HomeScreen() {
 
         {/* Encabezado con iconos */}
         <View style={styles.header}>
-          <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/menu')}>
             <Ionicons name="menu" size={30} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/usuario')}>
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
         </View>

@@ -16,11 +16,11 @@ export default function ElegirScreen() {
             >
                 {/* Encabezado */}
                 <View style={styles.header}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/menu')}>
                         <Ionicons name="menu" size={30} color="#000" />
                     </TouchableOpacity>
-                    <TouchableOpacity>
-                        <Ionicons name="person" size={30} color="#000" />
+                    <TouchableOpacity onPress={() => router.push('/usuario')}>
+                        <Ionicons name="person-sharp" size={30} color="#000" />
                     </TouchableOpacity>
                 </View>
 
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingTop: 30,
-      },
+    },
 
     title: {
         fontSize: 32,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 0,
         left: 0,
-        right: 0, 
+        right: 0,
         flexDirection: 'row',
         justifyContent: 'space-around',
         paddingVertical: 15,
