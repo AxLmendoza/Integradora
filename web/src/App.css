@@ -1,38 +1,175 @@
-.App {
-  text-align: center;
+/* Estilos generales - Inspirados en StudyLab */
+
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f9fa;
+  color: #212529;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
+  padding: 20px 0;
+  background-color: #343a40;
+  color: #fff;
+  border-bottom: 3px solid #ff6f61;
+}
+
+.logo {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.nav a {
+  margin-left: 20px;
+  text-decoration: none;
+  color: #fff;
+  font-size: 1.1em;
+  transition: color 0.3s;
+}
+
+.nav a:hover {
+  color: #ff6f61;
+}
+
+.main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 50px 0;
+}
+
+.main-content {
+  width: 60%;
+  text-align: left;
+}
+
+.main h1 {
+  font-size: 3em;
+  color: #343a40;
+  margin-bottom: 20px;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 15px;
+  font-size: 1em;
+  border: 2px solid #ff6f61;
+  border-radius: 30px;
+  margin-bottom: 20px;
+  outline: none;
+}
+
+.button {
+  padding: 12px 30px;
+  font-size: 1.1em;
+  color: #fff;
+  background-color: #ff6f61;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.button:hover {
+  background-color: #e05a4f;
+}
+
+.search-results {
+  width: 60%;
+  margin-top: 30px;
+}
+
+.search-results h2 {
+  font-size: 2em;
+  color: #343a40;
+  margin-bottom: 20px;
+}
+
+.trending-questions, .user-interaction {
+  width: 30%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 30px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.trending-questions h2, .user-interaction h2 {
+  font-size: 1.8em;
+  margin-bottom: 20px;
+  color: #ff6f61;
+}
+
+.trending-questions ul, .user-interaction ul {
+  list-style: none;
+  padding: 0;
+}
+
+.trending-questions li, .user-interaction li {
+  margin-bottom: 15px;
+  font-size: 1.1em;
+  color: #343a40;
+}
+
+.footer {
+  background-color: #343a40;
+  padding: 30px 0;
+  text-align: center;
+  color: #fff;
+}
+
+.footer-content a {
+  margin: 0 15px;
+  text-decoration: none;
+  color: #ff6f61;
+  font-size: 1em;
+  transition: color 0.3s;
+}
+
+.footer-content a:hover {
+  color: #fff;
+}
+
+/* Estilos para grupos de estudio */
+
+.study-groups {
+  padding: 50px 20px;
+  text-align: center;
+  background-color: #f8f9fa;
+}
+
+.group-list {
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 20px;
 }
 
-.App-link {
-  color: #61dafb;
+.group-item {
+  background-color: #fff;
+  border: 2px solid #ff6f61;
+  border-radius: 10px;
+  padding: 30px;
+  width: 250px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.group-item:hover {
+  background-color: #ff6f61;
+  color: #fff;
+  transform: scale(1.05);
 }
