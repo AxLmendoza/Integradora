@@ -26,10 +26,10 @@ export default function CompartirInformacionScreen() {
       >
         {/* Encabezado */}
         <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/elegir')}>
+          <TouchableOpacity onPress={() => router.push('/elegir')}>
             <Ionicons name="arrow-back" size={30} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/usuario')}>
             <Ionicons name="person" size={30} color="#000" />
           </TouchableOpacity>
         </View>
@@ -90,8 +90,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingTop: 20,
+    paddingTop: 35,
   },
   title: {
     fontSize: 20,
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     left: 0,
-    right: 0, 
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,

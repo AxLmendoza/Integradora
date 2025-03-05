@@ -35,10 +35,10 @@ export default function HomeScreen() {
 
         {/* Encabezado con iconos */}
         <View style={styles.header}>
-          <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/menu')}>
             <Ionicons name="menu" size={30} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
         </View>
@@ -64,7 +64,7 @@ export default function HomeScreen() {
 
         {/* Imagen de Grupos */}
         <View style={styles.contentContainer}>
-          <TouchableOpacity onPress={() => router.push('/grupos')}>
+          <TouchableOpacity onPress={() => router.push('/grupos_estu')}>
             <Image
               source={require('../../assets/images/grupos.jpeg')}
               style={styles.groupsImage}

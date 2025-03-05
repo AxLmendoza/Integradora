@@ -24,10 +24,10 @@ export default function ResponderScreen() {
       >
         {/* Encabezado */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/comunidad')}>
+          <TouchableOpacity onPress={() => router.push('/elegir')}>
             <Ionicons name="arrow-back" size={30} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/usuario')}>
             <Ionicons name="person" size={30} color="#000" />
           </TouchableOpacity>
         </View>
@@ -57,24 +57,24 @@ export default function ResponderScreen() {
             <Text style={styles.buttonText}>Enviar</Text>
           </TouchableOpacity>
         </View>
-      
 
-    {/* Barra de navegación inferior */ }
-  <View style={styles.navbar}>
-    <TouchableOpacity onPress={() => router.push('/grupos')}>
-      <Ionicons name="home-outline" size={28} color="#000" />
-    </TouchableOpacity>
-    <TouchableOpacity onPress={() => router.push('/chat')}>
-      <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
-    </TouchableOpacity>
-    <TouchableOpacity onPress={() => router.push('/elegir')}>
-      <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
-    </TouchableOpacity>
-  </View>
 
-  </ImageBackground>
+        {/* Barra de navegación inferior */}
+        <View style={styles.navbar}>
+          <TouchableOpacity onPress={() => router.push('/grupos')}>
+            <Ionicons name="home-outline" size={28} color="#000" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/chat')}>
+            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/elegir')}>
+            <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
+          </TouchableOpacity>
+        </View>
+
+      </ImageBackground>
     </View>
-          
+
   );
 }
 
@@ -89,8 +89,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingTop: 20,
+    paddingTop: 35,
   },
   title: {
     fontSize: 20,
