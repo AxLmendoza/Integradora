@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = React.useState('')
-  ;
+    ;
 
   const handleSearchSubmit = () => {
     if (searchQuery.trim() !== '') {
@@ -35,7 +35,7 @@ export default function HomeScreen() {
 
         {/* Encabezado con iconos */}
         <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/(tabs)/menu')}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/menu')}>
             <Ionicons name="menu" size={30} color="#000" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>
@@ -44,7 +44,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Título */}
-        <Text style={styles.title}>¡REALIZA UNA PREGUNTA!</Text>
+        <Text style={styles.title}>¡Realiza una pregunta!</Text>
 
         {/* Barra de búsqueda */}
         <View style={styles.searchContainer}>
@@ -66,7 +66,7 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           <TouchableOpacity onPress={() => router.push('/grupos_estu')}>
             <Image
-              source={require('../../assets/images/grupos.jpeg')}
+              source={require('../../assets/images/grupos_icon.png')}
               style={styles.groupsImage}
               resizeMode="contain"
             />
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 20, 
+    marginTop: 20,
     marginBottom: 5,
     color: '#000',
   },
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginHorizontal: 30,
     marginBottom: 15,
-    marginTop: 20, 
+    marginTop: 20,
   },
   searchInput: {
     flex: 1,
@@ -135,14 +135,14 @@ const styles = StyleSheet.create({
     marginLeft: 50,
   },
   contentContainer: {
-    
+
     justifyContent: 'center',
     alignItems: 'center',
   },
   groupsImage: {
     width: 500,
-    height: 200,
-    marginTop: 160, 
+    height: 250,
+    marginTop: 100,
   },
   navbar: {
     position: 'absolute',
