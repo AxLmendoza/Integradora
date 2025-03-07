@@ -101,10 +101,10 @@ const RegisterScreen = () => {
                             style={styles.picker}
                         >
                             <Picker.Item label="Selecciona un programa educativo" value="" />
-                            <Picker.Item label="Matemáticas" value="matematicas" />
-                            <Picker.Item label="Ciencias" value="ciencias" />
-                            <Picker.Item label="Historia" value="historia" />
-                            <Picker.Item label="Literatura" value="literatura" />
+                            <Picker.Item label="TI" value="ti" />
+                            <Picker.Item label="Contaduria" value="contaduria" />
+                            <Picker.Item label="Mecatronica" value="mecatronica" />
+                            <Picker.Item label="Agricultura" value="agricultura" />
                         </Picker>
                     </View>
                     <TextInput

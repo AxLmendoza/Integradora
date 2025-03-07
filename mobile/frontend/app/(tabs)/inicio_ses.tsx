@@ -29,7 +29,7 @@ const LoginScreen = () => {
         alert("No hay un usuario registrado");
         return;
       }
-      
+
       const parsedUser = JSON.parse(storedUser);
       if (parsedUser.username.trim().toLowerCase() === username.trim().toLowerCase() && parsedUser.password === password) {
         alert("Inicio de sesión exitoso");
