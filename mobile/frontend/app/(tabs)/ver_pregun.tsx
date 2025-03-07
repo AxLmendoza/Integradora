@@ -11,14 +11,14 @@ export default function VerPregun() {
   const [respuestas, setRespuestas] = useState([
     {
       id: '1',
-      autor: 'Alejandra M', 
-      avatar: require('../../assets/images/user.png'),
+      autor: 'Alejandra M',
+      avatar: require('@/assets/images/user.png'),
       texto: 'React Native permite el desarrollo de aplicaciones móviles usando JavaScript y React, compilando el código a componentes nativos.',
       votos: 5,
     },
     {
-      autor: 'Axel M', 
-      avatar: require('../../assets/images/user.png'),
+      autor: 'Axel M',
+      avatar: require('@/assets/images/user.png'),
       id: '2',
       texto: 'React Native es una librería que permite crear interfaces de usuario nativas para iOS y Android utilizando JavaScript.',
       votos: 3,
@@ -27,10 +27,10 @@ export default function VerPregun() {
 
   // Función para votar por una respuesta
   const votarRespuesta = (idRespuesta) => {
-    setRespuestas((prevRespuestas) => 
-      prevRespuestas.map((resp) => 
-        resp.id === idRespuesta 
-          ? { ...resp, votos: resp.votos + 1 } 
+    setRespuestas((prevRespuestas) =>
+      prevRespuestas.map((resp) =>
+        resp.id === idRespuesta
+          ? { ...resp, votos: resp.votos + 1 }
           : resp
       )
     );
@@ -38,7 +38,7 @@ export default function VerPregun() {
 
   return (
     <ImageBackground
-      source={require('../../assets/images/fondo.jpeg')}
+      source={require('@/assets/images/fondo.jpeg')}
       style={styles.backgroundImage}
       resizeMode="cover"
     >

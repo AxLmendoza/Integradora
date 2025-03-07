@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,21 +9,46 @@ import {
   Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = () => {
   const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Aquí se pueden validar credenciales, etc.
-    
+  useEffect(() => {
+    // Limpiar campos al entrar en la pantalla
+    setUsername('');
+    setPassword('');
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem('user');
+      if (!storedUser) {
+        alert("No hay un usuario registrado");
+        return;
+      }
+      
+      const parsedUser = JSON.parse(storedUser);
+      if (parsedUser.username.trim().toLowerCase() === username.trim().toLowerCase() && parsedUser.password === password) {
+        alert("Inicio de sesión exitoso");
+        router.push('/grupos');
+      } else {
+        alert("Usuario o contraseña incorrectos");
+      }
+    } catch (error) {
+      console.error('Error al leer desde AsyncStorage', error);
+      alert("Hubo un problema al intentar iniciar sesión");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <ImageBackground source={require('../../assets/images/personas_2.jpg')} style={styles.backgroundImage}>
+      <ImageBackground source={require('@/assets/images/personas_2.jpg')} style={styles.backgroundImage}>
         <View style={styles.overlay} />
         <View style={styles.contentContainer}>
-          <Image source={require('../../assets/images/ardilla_naranja.png')} style={styles.logo} resizeMode="contain" />
+          <Image source={require('@/assets/images/ardilla_naranja.png')} style={styles.logo} resizeMode="contain" />
           <View style={styles.switchContainer}>
             <TouchableOpacity style={styles.switchButtonInactive} onPress={() => router.push('/registro')}>
               <Text style={styles.switchTextInactive}>Regístrate</Text>
@@ -32,13 +57,25 @@ const LoginScreen = () => {
               <Text style={styles.switchTextActive}>Inicia sesión</Text>
             </TouchableOpacity>
           </View>
-          <TextInput style={styles.input} placeholder="Usuario" placeholderTextColor="#666" />
-          <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#666" secureTextEntry />
+          <TextInput
+            style={styles.input}
+            placeholder="Usuario"
+            placeholderTextColor="#666"
+            value={username}
+            onChangeText={setUsername}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Contraseña"
+            placeholderTextColor="#666"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
           <TouchableOpacity>
             <Text style={styles.forgotPassword}>Olvidé mi contraseña</Text>
           </TouchableOpacity>
-          {/* Se agrega onPress al botón de Iniciar sesión */}
-          <TouchableOpacity style={styles.button} onPress={() => router.push('./grupos')}>
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Iniciar sesión</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/registro')}>
@@ -49,8 +86,6 @@ const LoginScreen = () => {
     </View>
   );
 };
-
-export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -69,3 +104,5 @@ const styles = StyleSheet.create({
   linkText: { color: '#ff6b00', marginTop: 10, fontWeight: 'bold' },
   forgotPassword: { color: '#ff6b00', marginBottom: 10, fontWeight: 'bold' }
 });
+
+export default LoginScreen;

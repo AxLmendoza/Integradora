@@ -18,7 +18,7 @@ export default function ResponderScreen() {
     <View style={styles.container}>
       {/* Imagen de fondo */}
       <ImageBackground
-        source={require('../../assets/images/fondo.jpeg')}
+        source={require('@/assets/images/fondo.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >

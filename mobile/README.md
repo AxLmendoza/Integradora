@@ -52,7 +52,15 @@ Join our community of developers creating universal apps.
 
 
 
-#Dependencias que se neccesitan
+# Descargar cambios. Para descargar los cambios realizados en el código de este proyecto, siga estos pasos:
 
-npx expo install expo-image-picker expo-document-picker
-expo install expo-linear-gradient
+1. Asegúrate de que tienes Git instalado en tu equipo. Puedes descargarlo desde [https://git-scm.com/downloads](https://git-scm.com/downloads).
+
+2. Abra una terminal en la carpeta del proyecto.
+
+3. Para obtener los cambios locales, ejecuta el siguiente comando:
+
+    bash
+    git pull origin development
+
+

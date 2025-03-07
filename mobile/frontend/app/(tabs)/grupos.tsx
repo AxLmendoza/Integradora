@@ -27,7 +27,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('../../assets/images/fondo.jpeg')}
+        source={require('@/assets/images/fondo.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -66,7 +66,7 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           <TouchableOpacity onPress={() => router.push('/grupos_estu')}>
             <Image
-              source={require('../../assets/images/grupos_icon.png')}
+              source={require('@/assets/images/grupos_icon.png')}
               style={styles.groupsImage}
               resizeMode="contain"
             />

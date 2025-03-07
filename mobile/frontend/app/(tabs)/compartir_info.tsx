@@ -20,7 +20,7 @@ export default function CompartirInformacionScreen() {
     <View style={styles.container}>
       {/* Imagen de fondo */}
       <ImageBackground
-        source={require('../../assets/images/fondo.jpeg')}
+        source={require('@/assets/images/fondo.jpeg')}  // Ruta actualizada
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -76,6 +76,7 @@ export default function CompartirInformacionScreen() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

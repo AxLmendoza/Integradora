@@ -16,7 +16,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('../../assets/images/personas_2.jpg')}
+        source={require('@/assets/images/personas_2.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -27,7 +27,7 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           {/* Logo */}
           <Image
-            source={require('../../assets/images/ardilla_naranja.png')}
+            source={require('@/assets/images/ardilla_naranja.png')}
             style={styles.logo}
             resizeMode="contain"
           />

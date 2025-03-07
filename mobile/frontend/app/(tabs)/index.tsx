@@ -1,25 +1,25 @@
 import React from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  ImageBackground, 
-  TouchableOpacity, 
-  Image 
+import {
+  StyleSheet,
+  View,
+  ImageBackground,
+  TouchableOpacity,
+  Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
-  
+
   const router = useRouter(); // Para navegar a otras pantallas
 
   return (
-    <TouchableOpacity 
-      style={styles.container} 
-      activeOpacity={1} 
+    <TouchableOpacity
+      style={styles.container}
+      activeOpacity={1}
       onPress={() => router.push('/home')}
     >
       <ImageBackground
-        source={require('../../assets/images/personas_1.jpg')}
+        source={require('@/assets/images/personas_1.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -29,7 +29,7 @@ export default function HomeScreen() {
           {/* Logo tocable para navegar */}
           <TouchableOpacity onPress={() => router.push('/home')}>
             <Image
-              source={require('../../assets/images/ardilla_naranja.png')}
+              source={require('@/assets/images/ardilla_naranja.png')}
               style={styles.logo}
               resizeMode="contain"
             />

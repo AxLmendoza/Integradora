@@ -24,7 +24,7 @@ export default function GruposEstuScreen() {
     return (
         <View style={styles.container}>
             <ImageBackground
-                source={require('../../assets/images/fondo.jpeg')}
+                source={require('@/assets/images/fondo.jpeg')}
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
@@ -98,22 +98,22 @@ const groups = [
     {
         title: 'PROGRAMACIÓN Y MÁS',
         description: 'Grupo para personas que les gusta programar. Reglas: Ser amable, compartir código, pasar las tareas.',
-        image: require('../../assets/images/fondo_programacion.jpeg')
+        image: require('@/assets/images/fondo_programacion.jpeg')
     },
     {
         title: 'REDES Y CIBERSEGURIDAD',
         description: 'Bienvenidos al mejor grupo para aprender sobre redes. Reglas: Compartir material, pasar los apuntes.',
-        image: require('../../assets/images/ciberseguridad_fondo.jpeg')
+        image: require('@/assets/images/ciberseguridad_fondo.jpeg')
     },
     {
         title: 'MATEMÁTICAS SIUUU',
         description: 'En este grupo todos nos apoyamos. Reglas: Resolver ejercicios, ayudar a otros, saber sumar.',
-        image: require('../../assets/images/fondo_matematicas.jpeg')
+        image: require('@/assets/images/fondo_matematicas.jpeg')
     },
     {
         title: 'INGLÉS BÁSICO',
         description: 'Grupo para compartir trabajos y tareas de inglés. Reglas: Ser respetuoso, responder, no publicar groserías.',
-        image: require('../../assets/images/fondo_ingles.jpeg')
+        image: require('@/assets/images/fondo_ingles.jpeg')
     }
 ];
 

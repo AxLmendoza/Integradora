@@ -35,23 +35,23 @@ export default function MensajesScreen() {
 
   const renderItem = ({ item }: { item: any }) => (
     <View style={styles.messageItem}>
-    <View style={styles.row}>
-      <Ionicons name="person-circle" size={42} color="#3b3b3b" style={styles.avatar} />
-      <View style={{ flex: 1 }}>
-        <Text style={styles.userName}>{item.name}</Text>
-        <Text style={styles.messageText} numberOfLines={1}>
-          {item.text}
-        </Text>
+      <View style={styles.row}>
+        <Ionicons name="person-circle" size={42} color="#3b3b3b" style={styles.avatar} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.userName}>{item.name}</Text>
+          <Text style={styles.messageText} numberOfLines={1}>
+            {item.text}
+          </Text>
+        </View>
+        <Text style={styles.timeText}>{item.time}</Text>
       </View>
-      <Text style={styles.timeText}>{item.time}</Text>
     </View>
-  </View>
-);
+  );
 
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('../../assets/images/fondo.jpeg')}
+        source={require('@/assets/images/fondo.jpeg')} // Ruta actualizada
         style={styles.backgroundImage}
         resizeMode="cover"
       >

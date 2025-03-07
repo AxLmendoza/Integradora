@@ -6,21 +6,70 @@ import {
     ImageBackground,
     TouchableOpacity,
     TextInput,
-    Image
+    Image,
+    Alert
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const RegisterScreen = () => {
     const router = useRouter();
     const [selectedProgram, setSelectedProgram] = useState('');
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    const validateEmail = (email: string): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+
+    const handleRegister = async () => {
+        if (!username.trim() || !email.trim() || !selectedProgram || !password.trim() || !confirmPassword.trim()) {
+            Alert.alert('Error', 'Todos los campos son obligatorios');
+            return;
+        }
+
+        if (!validateEmail(email)) {
+            Alert.alert('Error', 'Correo electrónico inválido');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Alert.alert('Error', 'Las contraseñas no coinciden');
+            return;
+        }
+
+        const user = { username, email, program: selectedProgram, password };
+
+        try {
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+            Alert.alert('Éxito', 'Registro exitoso');
+            console.log('Usuario registrado en AsyncStorage:', user);
+
+            // Limpiar los campos después del registro exitoso
+            setUsername('');
+            setEmail('');
+            setSelectedProgram('');
+            setPassword('');
+            setConfirmPassword('');
+
+            router.push('/inicio_ses');
+        } catch (error) {
+            console.error('Error al guardar los datos en AsyncStorage', error);
+            Alert.alert('Error', 'Hubo un problema al registrar el usuario');
+        }
+    };
 
     return (
         <View style={styles.container}>
-            <ImageBackground source={require('../../assets/images/personas_2.jpg')} style={styles.backgroundImage}>
+            <ImageBackground source={require('@/assets/images/personas_2.jpg')} style={styles.backgroundImage}>
                 <View style={styles.overlay} />
                 <View style={styles.contentContainer}>
-                    <Image source={require('../../assets/images/ardilla_naranja.png')} style={styles.logo} resizeMode="contain" />
+                    <Image source={require('@/assets/images/ardilla_naranja.png')} style={styles.logo} resizeMode="contain" />
                     <View style={styles.switchContainer}>
                         <TouchableOpacity style={styles.switchButtonActive}>
                             <Text style={styles.switchTextActive}>Regístrate</Text>
@@ -29,8 +78,22 @@ const RegisterScreen = () => {
                             <Text style={styles.switchTextInactive}>Inicia sesión</Text>
                         </TouchableOpacity>
                     </View>
-                    <TextInput style={styles.input} placeholder="Usuario" placeholderTextColor="#666" />
-                    <TextInput style={styles.input} placeholder="Correo electrónico" placeholderTextColor="#666" />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Usuario"
+                        placeholderTextColor="#666"
+                        value={username}
+                        onChangeText={setUsername}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Correo electrónico"
+                        placeholderTextColor="#666"
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
                     <View style={styles.pickerContainer}>
                         <Picker
                             selectedValue={selectedProgram}
@@ -44,9 +107,23 @@ const RegisterScreen = () => {
                             <Picker.Item label="Literatura" value="literatura" />
                         </Picker>
                     </View>
-                    <TextInput style={styles.input} placeholder="Contraseña" placeholderTextColor="#666" secureTextEntry />
-                    <TextInput style={styles.input} placeholder="Confirmar contraseña" placeholderTextColor="#666" secureTextEntry />
-                    <TouchableOpacity style={styles.button} onPress={() => router.push('./inicio_ses')}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Contraseña"
+                        placeholderTextColor="#666"
+                        secureTextEntry
+                        value={password}
+                        onChangeText={setPassword}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Confirmar contraseña"
+                        placeholderTextColor="#666"
+                        secureTextEntry
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                    />
+                    <TouchableOpacity style={styles.button} onPress={handleRegister}>
                         <Text style={styles.buttonText}>Crear cuenta</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => router.push('/inicio_ses')}>
@@ -57,8 +134,6 @@ const RegisterScreen = () => {
         </View>
     );
 };
-
-export default RegisterScreen;
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
@@ -78,3 +153,6 @@ const styles = StyleSheet.create({
     buttonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
     linkText: { color: '#ff6b00', marginTop: 10, fontWeight: 'bold' }
 });
+
+
+export default RegisterScreen;

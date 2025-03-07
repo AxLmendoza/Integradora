@@ -1,0 +1,24 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./",  // Cambiar rootDir a la raíz del proyecto
+    "strict": true,
+    "esModuleInterop": true,
+    "jsx": "react-native",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "app/**/*",  // Incluir toda la carpeta app
+    "components/**/*",  // Incluir toda la carpeta components
+    "assets/**/*",  // Incluir toda la carpeta assets
+    "constants/**/*",  // Incluir toda la carpeta constants
+    "hooks/**/*",  // Incluir toda la carpeta hooks
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
+}

@@ -8,16 +8,16 @@ export default function ComunidadChipmunksScreen() {
 
   // Lista de preguntas
   const preguntas = [
-    { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('../../assets/images/user.png'), votos: 0 },
-    { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('../../assets/images/user.png'), votos: 0 },
-    { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('../../assets/images/user.png'), votos: 0 },
+    { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('@/assets/images/user.png'), votos: 0 },
+    { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('@/assets/images/user.png'), votos: 0 },
+    { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('@/assets/images/user.png'), votos: 0 },
   ];
 
   return (
     <View style={styles.container}>
       {/* Imagen de fondo */}
       <ImageBackground
-        source={require('../../assets/images/fondo.jpeg')}
+        source={require('@/assets/images/fondo.jpeg')}  // Ruta actualizada
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -63,6 +63,7 @@ export default function ComunidadChipmunksScreen() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
