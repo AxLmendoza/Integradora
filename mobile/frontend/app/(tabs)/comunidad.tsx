@@ -1,17 +1,30 @@
-import * as React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ImageBackground, TextInput,Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ComunidadChipmunksScreen() {
   const router = useRouter();
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Lista de preguntas
   const preguntas = [
+<<<<<<< HEAD:mobile/frontend/app/(tabs)/comunidad.tsx
     { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('@/assets/images/user.png'), votos: 0 },
     { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('@/assets/images/user.png'), votos: 0 },
     { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('@/assets/images/user.png'), votos: 0 },
+=======
+    { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('../../assets/images/user.png'), votos: 0, fecha: '2025-03-05' },
+    { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('../../assets/images/user.png'), votos: 0, fecha: '2025-03-04' },
+    { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('../../assets/images/user.png'), votos: 0, fecha: '2025-03-03' },
+>>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/comunidad.tsx
   ];
+
+  // Filtrar preguntas por nombre
+  const filteredPreguntas = preguntas.filter(pregunta =>
+    pregunta.titulo.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <View style={styles.container}>
@@ -31,15 +44,30 @@ export default function ComunidadChipmunksScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Barra de búsqueda */}
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar pregunta..."
+          placeholderTextColor="#888"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+
         {/* Título */}
         <Text style={styles.title}>COMUNIDAD CHIPMUNKS</Text>
 
         {/* Lista de preguntas */}
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {preguntas.map((pregunta) => (
+          {filteredPreguntas.map((pregunta) => (
             <View key={pregunta.id} style={styles.questionContainer}>
-              <Text style={styles.autor}>{pregunta.autor}</Text>
-              <Text>{pregunta.titulo}</Text>
+              <View style={styles.questionHeader}>
+                <Image source={pregunta.avatar} style={styles.userAvatar} />
+                <View>
+                  <Text style={styles.autor}>{pregunta.autor}</Text>
+                  <Text style={styles.questionDate}>{pregunta.fecha}</Text>
+                </View>
+              </View>
+              <Text style={styles.questionTitle}>{pregunta.titulo}</Text>
               <TouchableOpacity style={styles.button} onPress={() => router.push('/responder')}>
                 <Text style={styles.buttonText}>Responder</Text>
               </TouchableOpacity>
@@ -49,6 +77,7 @@ export default function ComunidadChipmunksScreen() {
 
         {/* Barra de navegación */}
         <View style={styles.navbar}>
+          <View style={styles.whiteLine}></View>
           <TouchableOpacity onPress={() => router.push('/grupos')}>
             <Ionicons name="home-outline" size={28} color="#000" />
           </TouchableOpacity>
@@ -70,53 +99,81 @@ const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
     justifyContent: 'flex-start',
-    padding: 20, // Asegura un padding alrededor de los elementos
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 35,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-    color: '#000', // Título en color negro
+    color: '#FFF',
+  },
+  searchInput: {
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingLeft: 15,
+    marginBottom: 20,
+    backgroundColor: '#FFF',
+    fontSize: 16,
   },
   userAvatar: {
-    width: 35,
-    height: 35,
-    borderRadius: 17.5,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginRight: 10,
   },
   autor: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
   },
-  scrollContainer: {
-    flexGrow: 1, // Permite que el contenido de ScrollView ocupe todo el espacio disponible
-    paddingBottom: 80, // Para dejar espacio suficiente para la barra de navegación
+  questionDate: {
+    fontSize: 12,
+    color: '#888',
   },
   questionContainer: {
     padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    marginBottom: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)', 
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  questionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Fondo ligeramente transparente para las preguntas
-    borderRadius: 5,
+  },
+  questionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 10,
   },
   button: {
     backgroundColor: '#000',
     padding: 10,
-    marginTop: 10,
     borderRadius: 5,
   },
   buttonText: {
     color: '#fff',
     textAlign: 'center',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 80, // Espacio para la barra de navegación
   },
   navbar: {
     flexDirection: 'row',
@@ -127,5 +184,15 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  whiteLine: {
+    width: 65,
+    height: 5,
+    backgroundColor: '#fff',
+    position: 'absolute',
+    top: 0.5,
+    left: '81%',
+    marginLeft: -20,
+    zIndex: 100,
   },
 });

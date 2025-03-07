@@ -14,12 +14,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = React.useState('')
-    ;
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleSearchSubmit = () => {
     if (searchQuery.trim() !== '') {
-      router.push(`/buscar_pre?query=${searchQuery}`);
+      router.push(`/ad_buscar_pre?query=${searchQuery}`);
       Keyboard.dismiss(); // Ocultar el teclado después de enviar la búsqueda
     }
   };
@@ -27,7 +26,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('@/assets/images/fondo.jpeg')}
+        source={require('../../assets/images/ad_fondo.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -35,22 +34,22 @@ export default function HomeScreen() {
 
         {/* Encabezado con iconos */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/menu')}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/ad_menu')}>
             <Ionicons name="menu" size={30} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/ad_usuario')}>
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
         </View>
 
         {/* Título */}
-        <Text style={styles.title}>Buscar preguanta</Text>
+        <Text style={styles.title}>Pregunta</Text>
 
         {/* Barra de búsqueda */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar"
+            placeholder="Buscar pregunta"
             placeholderTextColor="#666"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -64,9 +63,9 @@ export default function HomeScreen() {
 
         {/* Imagen de Grupos */}
         <View style={styles.contentContainer}>
-          <TouchableOpacity onPress={() => router.push('/grupos_estu')}>
+          <TouchableOpacity onPress={() => router.push('/ad_grupos')}>
             <Image
-              source={require('@/assets/images/grupos_icon.png')}
+              source={require('../../assets/images/grupos_icon.png')}
               style={styles.groupsImage}
               resizeMode="contain"
             />
@@ -75,14 +74,15 @@ export default function HomeScreen() {
 
         {/* Barra de navegación inferior */}
         <View style={styles.navbar}>
+          {/* Barra blanca justo encima del ícono Home */}
           <View style={styles.whiteLine}></View>
-          <TouchableOpacity onPress={() => router.push('/grupos')}>
+          <TouchableOpacity onPress={() => router.push('/ad_principal')}>
             <Ionicons name="home-outline" size={28} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/chat')}>
+          <TouchableOpacity onPress={() => router.push('/ad_chat')}>
             <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/elegir')}>
+          <TouchableOpacity onPress={() => router.push('/ad_elegir')}>
             <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 50,
+
   },
   title: {
     fontSize: 24,
@@ -136,7 +137,6 @@ const styles = StyleSheet.create({
     marginLeft: 50,
   },
   contentContainer: {
-
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -166,3 +166,4 @@ const styles = StyleSheet.create({
     zIndex: 100, // Asegura que la línea esté encima del ícono
   },
 });
+

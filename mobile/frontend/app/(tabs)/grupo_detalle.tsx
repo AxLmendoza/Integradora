@@ -105,16 +105,17 @@ export default function GrupoDetalleScreen() {
 
             {/* Barra de navegación inferior */}
             <View style={styles.navbar}>
-                <TouchableOpacity onPress={() => router.push('/grupos')}>
-                    <Ionicons name="home-outline" size={28} color="#000" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push('/chat')}>
-                    <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push('/elegir')}>
-                    <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
-                </TouchableOpacity>
-            </View>
+                      <View style={styles.whiteLine}></View>
+                      <TouchableOpacity onPress={() => router.push('/grupos')}>
+                        <Ionicons name="home-outline" size={28} color="#fff" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => router.push('/chat')}>
+                        <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => router.push('/elegir')}>
+                        <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
+                      </TouchableOpacity>
+                    </View>
         </View>
     );
 }
@@ -201,12 +202,28 @@ const styles = StyleSheet.create({
         color: '#5c6c7c',
     },
     navbar: {
-        position: 'absolute',
-        bottom: 0,
-        width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-around',
         paddingVertical: 15,
+<<<<<<< HEAD:mobile/frontend/app/(tabs)/grupo_detalle.tsx
         backgroundColor: '#f5f8fc',
     },
+=======
+        backgroundColor: '#000',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+      },
+      whiteLine: {
+        width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
+        height: 5,
+        backgroundColor: '#fff',
+        position: 'absolute',
+        top: 0.5, // Esto coloca la línea justo encima del ícono de la casita
+        left: '13%', // Centra la línea horizontalmente
+        marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
+        zIndex: 100, // Asegura que la línea esté encima del ícono
+      },
+>>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/grupo_detalle.tsx
 });

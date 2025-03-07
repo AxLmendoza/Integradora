@@ -4,9 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 const preguntasEjemplo = [
-  { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('@/assets/images/user.png') },
-  { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('@/assets/images/user.png') },
-  { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('@/assets/images/user.png') },
+  { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('../../assets/images/user.png') },
+  { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('../../assets/images/user.png') },
+  { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('../../assets/images/user.png')},
 ];
 
 export default function BuscarPre() {
@@ -24,7 +24,7 @@ export default function BuscarPre() {
   // Agregar una nueva pregunta
   const addQuestion = () => {
     if (newQuestion.trim() !== '') {
-      const newQ = { id: Date.now().toString(), titulo: newQuestion, autor: 'Usuario Anónimo', avatar: require('@/assets/images/user.png') };
+      const newQ = { id: Date.now().toString(), titulo: newQuestion, autor: 'Usuario Anónimo', avatar: require('../../assets/images/user.png') };
       setQuestions([newQ, ...questions]);
       setNewQuestion('');
       setModalVisible(false);
@@ -34,7 +34,7 @@ export default function BuscarPre() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('@/assets/images/fondo.jpeg')}
+        source={require('../../assets/images/fondo.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -42,9 +42,9 @@ export default function BuscarPre() {
 
         {/* Encabezado con iconos */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/menu')}>
-            <Ionicons name="menu" size={30} color="#000" />
-          </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push('/grupos')}>
+                  <Ionicons name="arrow-back" size={30} color="#000" />
+                </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
@@ -65,28 +65,6 @@ export default function BuscarPre() {
           </TouchableOpacity>
         </View>
 
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/buscar_pre.tsx
-        {/* Contenedor de la lista para evitar solapamiento con la navbar */}
-        <View style={{ flex: 1 }}>
-          <FlatList
-            data={filteredQuestions}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.item}
-                onPress={() => router.push(`/ver_pregun?id=${item.id}`)}
-              >
-                <View style={styles.userContainer}>
-                  <Image source={item.avatar} style={styles.userAvatar} />
-                  <Text style={styles.autor}>{item.autor}</Text>
-                </View>
-                <Text style={styles.itemText}>{item.titulo}</Text>
-              </TouchableOpacity>
-            )}
-            contentContainerStyle={{ paddingBottom: 50 }} // Espacio para la navbar
-          />
-        </View>
-=======
         {/* Lista de preguntas */}
         <FlatList
           data={filteredQuestions}
@@ -96,7 +74,7 @@ export default function BuscarPre() {
               style={styles.item}
               onPress={() => router.push(`/ver_pregun?id=${item.id}`)}
             >
-              <View style={styles.userContainer }>
+              <View style={styles.userContainer}>
                 <Image source={item.avatar} style={styles.userAvatar} />
                 <Text style={styles.autor}>{item.autor}</Text>
               </View>
@@ -104,7 +82,6 @@ export default function BuscarPre() {
             </TouchableOpacity>
           )}
         />
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/buscar_pre.tsx
 
         {/* Modal para nueva pregunta */}
         <Modal visible={modalVisible} animationType="slide" transparent>
@@ -137,31 +114,22 @@ export default function BuscarPre() {
           </View>
         </Modal>
 
-        {/* Barra de navegación */}
         <View style={styles.navbar}>
           <View style={styles.whiteLine}></View>
           <TouchableOpacity onPress={() => router.push('/grupos')}>
-            <Ionicons name="home-outline" size={28} color="#000" />
+            <Ionicons name="home-outline" size={28} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/chat')}>
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/buscar_pre.tsx
-            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/elegir')}>
-            <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
-=======
             <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/elegir')}>
             <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/buscar_pre.tsx
           </TouchableOpacity>
         </View>
       </ImageBackground>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -241,7 +209,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,
-    backgroundColor: '#fff',
+    backgroundColor: '#000',
     position: 'absolute',
     bottom: 0,
     left: 0,

@@ -8,23 +8,19 @@ export default function MenuScreen() {
 
   return (
     <ImageBackground
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/menu.tsx
-      source={require('@/assets/images/fondo.jpeg')}
-=======
-      source={require('../../assets/images/fondo.jpeg')} // Fondo naranja
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/menu.tsx
+    source={require('../../assets/images/ad_fondo.jpg')}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
       <View style={styles.container}>
         {/* Encabezado */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/grupos')}>
+          <TouchableOpacity onPress={() => router.push('/ad_principal')}>
             <Ionicons name="arrow-back" size={30} color="#000" />
           </TouchableOpacity>
 
           {/* Icono de usuario */}
-          <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/ad_usuario')}>
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
         </View>
@@ -38,7 +34,7 @@ export default function MenuScreen() {
             style={styles.menuButton}
             onPress={() => router.push('/(tabs)/usuario')}
           >
-            <Ionicons name="person" size={26} color="#fff" />
+            <Ionicons name="person" size={26} color="#000" />
             <Text style={styles.menuButtonText}>Cuenta</Text>
           </TouchableOpacity>
 
@@ -46,7 +42,7 @@ export default function MenuScreen() {
             style={styles.menuButton}
             onPress={() => router.push('/(tabs)/grupos')}
           >
-            <Ionicons name="shield-checkmark" size={26} color="#fff" />
+            <Ionicons name="shield-checkmark" size={26} color="#000" />
             <Text style={styles.menuButtonText}>Privacidad</Text>
           </TouchableOpacity>
 
@@ -54,7 +50,7 @@ export default function MenuScreen() {
             style={styles.menuButton}
             onPress={() => router.push('/(tabs)/grupos')}
           >
-            <Ionicons name="book" size={26} color="#fff" />
+            <Ionicons name="book" size={26} color="#000" />
             <Text style={styles.menuButtonText}>Publicaciones</Text>
           </TouchableOpacity>
 
@@ -62,7 +58,7 @@ export default function MenuScreen() {
             style={styles.menuButton}
             onPress={() => router.push('/inicio_ses')}
           >
-            <Ionicons name="exit-outline" size={26} color="#fff" />
+            <Ionicons name="exit-outline" size={26} color="#000" />
             <Text style={styles.menuButtonText}>Cerrar sesión</Text>
           </TouchableOpacity>
 
@@ -70,16 +66,16 @@ export default function MenuScreen() {
             style={styles.menuButton}
             onPress={() => router.push('/registro')}
           >
-            <Ionicons name="trash" size={26} color="#fff" />
+            <Ionicons name="trash" size={26} color="#000" />
             <Text style={styles.menuButtonText}>Eliminar cuenta</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.menuButton}
-            onPress={() => router.push('/ad_principal')}
+            onPress={() => router.push('/grupos')}
           >
-            <Ionicons name="hammer" size={26} color="#fff" />
-            <Text style={styles.menuButtonText}>Administrador</Text>
+            <Ionicons name="hammer" size={26} color="#000" />
+            <Text style={styles.menuButtonText}>Usuario</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -123,12 +119,11 @@ const styles = StyleSheet.create({
   menuButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Fondo oscuro para los botones
+    
     paddingVertical: 20, // Aumenté el padding vertical
     marginVertical: 12, // Aumenté el espacio entre los botones
     borderRadius: 12, // Bordes redondeados más pronunciados
     elevation: 6, // Sombra más pronunciada para dar el efecto flotante
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -138,7 +133,7 @@ const styles = StyleSheet.create({
   menuButtonText: {
     marginLeft: 20, // Aumenté el espacio entre el icono y el texto
     fontSize: 20, // Aumenté el tamaño del texto
-    color: '#fff',
+    color: '#000',
     fontWeight: '500',
   },
 });

@@ -56,15 +56,15 @@ export default function MensajesScreen() {
         resizeMode="cover"
       >
         <View style={styles.content}>
-          {/* Encabezado con menú y perfil */}
-          <View style={styles.header}>
-            <TouchableOpacity>
-              <Ionicons name="menu" size={30} color="#000" />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Ionicons name="person-circle" size={30} color="#000" />
-            </TouchableOpacity>
-          </View>
+          {/* Encabezado con iconos */}
+                  <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.push('/(tabs)/menu')}>
+                      <Ionicons name="menu" size={30} color="#000" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>
+                      <Ionicons name="person-sharp" size={30} color="#000" />
+                    </TouchableOpacity>
+                  </View>
 
           {/* Barra de búsqueda */}
           <View style={styles.searchBar}>
@@ -88,6 +88,7 @@ export default function MensajesScreen() {
 
           {/* Barra de navegación inferior */}
           <View style={styles.navbar}>
+<<<<<<< HEAD:mobile/frontend/app/(tabs)/chat.tsx
             <TouchableOpacity onPress={() => router.push('/grupos')}>
               <Ionicons name="home-outline" size={28} color="#000" />
             </TouchableOpacity>
@@ -98,6 +99,19 @@ export default function MensajesScreen() {
               <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
             </TouchableOpacity>
           </View>
+=======
+                    <View style={styles.whiteLine}></View>
+                    <TouchableOpacity onPress={() => router.push('/grupos')}>
+                      <Ionicons name="home-outline" size={28} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/chat')}>
+                      <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/elegir')}>
+                      <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+>>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/chat.tsx
         </View>
       </ImageBackground>
     </View>
@@ -170,5 +184,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 60,
     backgroundColor: '#fff',
+  },
+  whiteLine: {
+    width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
+    height: 5,
+    backgroundColor: '#fff',
+    position: 'absolute',
+    top: 0.5, // Esto coloca la línea justo encima del ícono de la casita
+    left: '47%', // Centra la línea horizontalmente
+    marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
+    zIndex: 100, // Asegura que la línea esté encima del ícono
   },
 });

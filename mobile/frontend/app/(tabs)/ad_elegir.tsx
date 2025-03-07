@@ -10,16 +10,16 @@ export default function ElegirScreen() {
         <View style={styles.container}>
             {/* Imagen de fondo */}
             <ImageBackground
-                source={require('@/assets/images/fondo.jpeg')}  // Ruta actualizada
+                source={require('../../assets/images/ad_fondo.jpg')}
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
                 {/* Encabezado */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.push('/menu')}>
+                    <TouchableOpacity onPress={() => router.push('/ad_menu')}>
                         <Ionicons name="menu" size={30} color="#000" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/usuario')}>
+                    <TouchableOpacity onPress={() => router.push('/ad_usuario')}>
                         <Ionicons name="person-sharp" size={30} color="#000" />
                     </TouchableOpacity>
                 </View>
@@ -28,7 +28,7 @@ export default function ElegirScreen() {
                 <Text style={styles.title}>ELIGE QUÉ HACER</Text>
 
                 {/* Opciones con iconos */}
-                <TouchableOpacity style={styles.option} onPress={() => router.push('/comunidad')}>
+                <TouchableOpacity style={styles.option} onPress={() => router.push('/ad_comunidad')}>
                     <Ionicons name="people-outline" size={24} color="#000" style={styles.icon} />
                     <View style={styles.optionTextContainer}>
                         <Text style={styles.optionText}>Comunidad Chipmunks</Text>
@@ -36,7 +36,7 @@ export default function ElegirScreen() {
                     </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.option} onPress={() => router.push('/compartir_info')}>
+                <TouchableOpacity style={styles.option} onPress={() => router.push('/ad_compartir_info')}>
                     <Ionicons name="share-social-outline" size={24} color="#000" style={styles.icon} />
                     <View style={styles.optionTextContainer}>
                         <Text style={styles.optionText}>Compartir información</Text>
@@ -47,34 +47,20 @@ export default function ElegirScreen() {
 
             {/* Barra de navegación */}
             <View style={styles.navbar}>
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/elegir.tsx
-                <TouchableOpacity onPress={() => router.push('/grupos')}>
-                    <Ionicons name="home-outline" size={28} color="#000" />
+                <View style={styles.whiteLine}></View>
+                <TouchableOpacity onPress={() => router.push('/ad_principal')}>
+                    <Ionicons name="home-outline" size={28} color="#fff" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push('/chat')}>
-                    <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
+                <TouchableOpacity onPress={() => router.push('/ad_chat')}>
+                    <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push('/elegir')}>
-                    <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
+                <TouchableOpacity onPress={() => router.push('/ad_elegir')}>
+                    <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
                 </TouchableOpacity>
             </View>
-=======
-                      <View style={styles.whiteLine}></View>
-                      <TouchableOpacity onPress={() => router.push('/grupos')}>
-                        <Ionicons name="home-outline" size={28} color="#fff" />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => router.push('/chat')}>
-                        <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => router.push('/elegir')}>
-                        <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
-                      </TouchableOpacity>
-                    </View>
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/elegir.tsx
         </View>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {
@@ -127,19 +113,16 @@ const styles = StyleSheet.create({
     },
 
     navbar: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingVertical: 15,
+        backgroundColor: '#000',
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/elegir.tsx
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        paddingVertical: 15,
-        backgroundColor: '#fff',
     },
-=======
-      },
-      whiteLine: {
+    whiteLine: {
         width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
         height: 5,
         backgroundColor: '#fff',
@@ -148,6 +131,5 @@ const styles = StyleSheet.create({
         left: '81%', // Centra la línea horizontalmente
         marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
         zIndex: 100, // Asegura que la línea esté encima del ícono
-      },
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/elegir.tsx
+    },
 });

@@ -4,36 +4,53 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function VerPregun() {
-  const { id } = useLocalSearchParams(); // Obtener el ID de la pregunta seleccionada
-  const router = useRouter(); // Inicializar el enrutador
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
 
-  // Ejemplo de datos para respuestas con votos
   const [respuestas, setRespuestas] = useState([
     {
       id: '1',
       autor: 'Alejandra M',
+<<<<<<< HEAD:mobile/frontend/app/(tabs)/ver_pregun.tsx
       avatar: require('@/assets/images/user.png'),
+=======
+      avatar: require('../../assets/images/user.png'),
+>>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/ver_pregun.tsx
       texto: 'React Native permite el desarrollo de aplicaciones móviles usando JavaScript y React, compilando el código a componentes nativos.',
       votos: 5,
+      fecha: '2025-03-05T08:30:00',
     },
     {
       autor: 'Axel M',
+<<<<<<< HEAD:mobile/frontend/app/(tabs)/ver_pregun.tsx
       avatar: require('@/assets/images/user.png'),
+=======
+      avatar: require('../../assets/images/user.png'),
+>>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/ver_pregun.tsx
       id: '2',
       texto: 'React Native es una librería que permite crear interfaces de usuario nativas para iOS y Android utilizando JavaScript.',
       votos: 3,
+      fecha: '2025-03-05T09:15:00',
     },
   ]);
 
-  // Función para votar por una respuesta
   const votarRespuesta = (idRespuesta) => {
     setRespuestas((prevRespuestas) =>
       prevRespuestas.map((resp) =>
+<<<<<<< HEAD:mobile/frontend/app/(tabs)/ver_pregun.tsx
         resp.id === idRespuesta
           ? { ...resp, votos: resp.votos + 1 }
           : resp
+=======
+        resp.id === idRespuesta ? { ...resp, votos: resp.votos + 1 } : resp
+>>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/ver_pregun.tsx
       )
     );
+  };
+
+  const formatearFecha = (fecha) => {
+    const date = new Date(fecha);
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
   return (
@@ -42,10 +59,8 @@ export default function VerPregun() {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      {/* Capa de overlay */}
       <View style={styles.overlay} />
 
-      {/* Encabezado */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.push('/buscar_pre')}>
           <Ionicons name="arrow-back" size={30} color="#000" />
@@ -57,11 +72,20 @@ export default function VerPregun() {
 
       <View style={styles.container}>
         <Text style={styles.headerText}>PREGUNTA</Text>
-        <Text style={styles.questionText}>¿Cómo funciona React Native?</Text>
+
+        <View style={styles.questionContainer}>
+          <View style={styles.questionHeader}>
+            <Image source={require('../../assets/images/user.png')} style={styles.userAvatar} />
+            <View style={styles.questionInfo}>
+              <Text style={styles.questionAuthor}>Alejandra M</Text>
+              <Text style={styles.questionDate}>5 de Marzo, 2025</Text>
+            </View>
+          </View>
+          <Text style={styles.questionText}>¿Cómo funciona React Native?</Text>
+        </View>
 
         <Text style={styles.answerTitle}>RESPUESTAS</Text>
 
-        {/* Mostrar las respuestas con opción de votar */}
         <FlatList
           data={respuestas}
           keyExtractor={(item) => item.id}
@@ -78,7 +102,7 @@ export default function VerPregun() {
                   style={styles.voteButton}
                   onPress={() => votarRespuesta(item.id)}
                 >
-                  <Ionicons name="thumbs-up" size={20} color="#000" />
+                  <Ionicons name="thumbs-up" size={20} color="#FFF" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -86,16 +110,16 @@ export default function VerPregun() {
         />
       </View>
 
-      {/* Barra de navegación inferior */}
       <View style={styles.navbar}>
+        <View style={styles.whiteLine}></View>
         <TouchableOpacity onPress={() => router.push('/grupos')}>
-          <Ionicons name="home-outline" size={28} color="#000" />
+          <Ionicons name="home-outline" size={28} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/chat')}>
-          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
+          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/elegir')}>
-          <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
+          <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -106,6 +130,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    paddingBottom: 63, // Evitar que se tapen las respuestas por el navbar
   },
   backgroundImage: {
     flex: 1,
@@ -113,7 +138,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Fondo semitransparente
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   header: {
     flexDirection: 'row',
@@ -123,40 +148,77 @@ const styles = StyleSheet.create({
     paddingTop: 50,
   },
   headerText: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#FFF',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
-  questionText: {
-    fontSize: 18,
-    color: '#FFF',
-    marginBottom: 15,
+  questionContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    marginHorizontal: 20,
   },
-  answerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFF',
-    marginTop: 10,
-  },
-  answerContainer: {
-    marginTop: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    padding: 15,
-    borderRadius: 8,
-  },
-  userContainer: {
+  questionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
   },
   userAvatar: {
-    width: 35,
-    height: 35,
-    borderRadius: 17.5,
-    marginRight: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 15,
+  },
+  questionInfo: {
+    flexDirection: 'column',
+  },
+  questionAuthor: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  questionDate: {
+    fontSize: 14,
+    color: '#888',
+  },
+  questionText: {
+    fontSize: 20,
+    color: '#333',
+    fontWeight: '600',
+  },
+  answerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginTop: 20,
+  },
+  answerContainer: {
+    marginTop: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 18,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  userContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   autor: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
   },
@@ -168,14 +230,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 12,
   },
   voteCount: {
     fontSize: 16,
     color: '#000',
   },
   voteButton: {
-    padding: 5,
+    padding: 8,
+    backgroundColor: '#4CAF50',
+    borderRadius: 6,
   },
   navbar: {
     position: 'absolute',
@@ -184,6 +248,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,
+    backgroundColor: '#000',
+    borderTopWidth: 2,
+    borderTopColor: '#333',
+  },
+  whiteLine: {
+    width: 65,
+    height: 5,
     backgroundColor: '#fff',
+    position: 'absolute',
+    top: 0.5,
+    left: '13%',
+    marginLeft: -20,
+    zIndex: 100,
   },
 });
