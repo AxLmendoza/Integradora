@@ -44,7 +44,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Título */}
-        <Text style={styles.title}>Buscar preguanta</Text>
+        <Text style={styles.title}>Buscar pregunta</Text>
 
         {/* Barra de búsqueda */}
         <View style={styles.searchContainer}>
