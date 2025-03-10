@@ -1,28 +1,29 @@
 import React from 'react';
 import {
-    StyleSheet,
-    Text,
-    View,
-    ImageBackground,
-    ScrollView,
-    TouchableOpacity
+    StyleSheet, 
+    Text, 
+    View, 
+    ImageBackground, 
+    ScrollView, 
+    TouchableOpacity, 
+    Image
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const groupImages: Record<string, any> = {
-    'PROGRAMACIÓN Y MÁS': require('@/assets/images/fondo_programacion.jpeg'),
-    'REDES Y CIBERSEGURIDAD': require('@/assets/images/ciberseguridad_fondo.jpeg'),
-    'MATEMÁTICAS SIUUU': require('@/assets/images/fondo_matematicas.jpeg'),
-    'INGLÉS BÁSICO': require('@/assets/images/fondo_ingles.jpeg'),
+    'PROGRAMACIÓN Y MÁS': require('../../assets/images/fondo_programacion.jpeg'),
+    'REDES Y CIBERSEGURIDAD': require('../../assets/images/ciberseguridad_fondo.jpeg'),
+    'MATEMÁTICAS SIUUU': require('../../assets/images/fondo_matematicas.jpeg'),
+    'INGLÉS BÁSICO': require('../../assets/images/fondo_ingles.jpeg'),
 };
 
 export default function GrupoDetalleScreen() {
     const router = useRouter();
     const { titulo, descripcion } = useLocalSearchParams();
     const tituloString = Array.isArray(titulo) ? titulo[0] : titulo;
-    const groupImage = groupImages[tituloString] || require('@/assets/images/fondo.jpeg');
+    const groupImage = groupImages[tituloString] || require('../../assets/images/fondo.jpeg');
 
     return (
         <View style={styles.container}>
@@ -49,11 +50,7 @@ export default function GrupoDetalleScreen() {
             {/* Contenido desplazable */}
             <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 58 }]}>
 
-                {/* Contenedor de la descripción */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Descripción</Text>
-                    <Text style={styles.description}>{descripcion}</Text>
-                </View>
+                <Text style={styles.description}>{descripcion}</Text>
 
                 {/* Sección de Videos */}
                 <View style={styles.sectionContainer}>
@@ -142,11 +139,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     titleContainer: {
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Fondo oscuro para el título
         paddingVertical: 4,
         paddingHorizontal: 20,
         alignItems: 'center',
-        marginTop: -40,
+        marginTop: -40, // Superpone el título sobre la imagen
+
     },
     title: {
         fontSize: 24,
@@ -156,21 +154,22 @@ const styles = StyleSheet.create({
     content: {
         padding: 20,
     },
+    description: {
+        fontSize: 16,
+        color: '#333',
+        paddingBottom: 23,
+    },
     sectionContainer: {
         marginBottom: 20,
-        backgroundColor: '#f5f8fc',
-        padding: 15,
+        backgroundColor: '#f5f8fc', // Fondo gris azulado suave
+        padding: 10,
         borderRadius: 10,
     },
     sectionTitle: {
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#5c6c7c',
-    },
-    description: {
-        fontSize: 16,
-        color: '#333',
+        color: '#5c6c7c', // Azul grisáceo
     },
     row: {
         flexDirection: 'row',
@@ -178,7 +177,7 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
     },
     card: {
-        backgroundColor: '#d0dae0',
+        backgroundColor: '#d0dae0', // Gris suave
         padding: 15,
         borderRadius: 10,
         width: '48%',
@@ -194,21 +193,17 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
         marginTop: 5,
-        color: '#2e3d4d',
+        color: '#2e3d4d', // Azul grisáceo oscuro
     },
     cardDescription: {
         fontSize: 12,
         textAlign: 'center',
-        color: '#5c6c7c',
+        color: '#5c6c7c', // Azul grisáceo
     },
     navbar: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         paddingVertical: 15,
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/grupo_detalle.tsx
-        backgroundColor: '#f5f8fc',
-    },
-=======
         backgroundColor: '#000',
         position: 'absolute',
         bottom: 0,
@@ -225,5 +220,4 @@ const styles = StyleSheet.create({
         marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
         zIndex: 100, // Asegura que la línea esté encima del ícono
       },
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/grupo_detalle.tsx
 });

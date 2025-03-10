@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ImageBackground, TextInput,Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ImageBackground, TextInput, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -10,15 +10,9 @@ export default function ComunidadChipmunksScreen() {
 
   // Lista de preguntas
   const preguntas = [
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/comunidad.tsx
-    { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('@/assets/images/user.png'), votos: 0 },
-    { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('@/assets/images/user.png'), votos: 0 },
-    { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('@/assets/images/user.png'), votos: 0 },
-=======
     { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('../../assets/images/user.png'), votos: 0, fecha: '2025-03-05' },
     { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('../../assets/images/user.png'), votos: 0, fecha: '2025-03-04' },
     { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('../../assets/images/user.png'), votos: 0, fecha: '2025-03-03' },
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/comunidad.tsx
   ];
 
   // Filtrar preguntas por nombre
@@ -30,7 +24,7 @@ export default function ComunidadChipmunksScreen() {
     <View style={styles.container}>
       {/* Imagen de fondo */}
       <ImageBackground
-        source={require('@/assets/images/fondo.jpeg')}  // Ruta actualizada
+        source={require('../../assets/images/fondo.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -79,20 +73,19 @@ export default function ComunidadChipmunksScreen() {
         <View style={styles.navbar}>
           <View style={styles.whiteLine}></View>
           <TouchableOpacity onPress={() => router.push('/grupos')}>
-            <Ionicons name="home-outline" size={28} color="#000" />
+            <Ionicons name="home-outline" size={28} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/chat')}>
-            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
+            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/elegir')}>
-            <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
+            <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
           </TouchableOpacity>
         </View>
       </ImageBackground>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -143,7 +136,7 @@ const styles = StyleSheet.create({
   questionContainer: {
     padding: 15,
     marginBottom: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.85)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -179,7 +172,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,
-    backgroundColor: '#fff',
+    backgroundColor: '#000',
     position: 'absolute',
     bottom: 0,
     left: 0,

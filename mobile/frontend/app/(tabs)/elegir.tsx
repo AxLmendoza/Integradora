@@ -10,7 +10,7 @@ export default function ElegirScreen() {
         <View style={styles.container}>
             {/* Imagen de fondo */}
             <ImageBackground
-                source={require('@/assets/images/fondo.jpeg')}  // Ruta actualizada
+                source={require('../../assets/images/fondo.jpeg')}
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
@@ -47,18 +47,6 @@ export default function ElegirScreen() {
 
             {/* Barra de navegación */}
             <View style={styles.navbar}>
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/elegir.tsx
-                <TouchableOpacity onPress={() => router.push('/grupos')}>
-                    <Ionicons name="home-outline" size={28} color="#000" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push('/chat')}>
-                    <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push('/elegir')}>
-                    <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
-                </TouchableOpacity>
-            </View>
-=======
                       <View style={styles.whiteLine}></View>
                       <TouchableOpacity onPress={() => router.push('/grupos')}>
                         <Ionicons name="home-outline" size={28} color="#fff" />
@@ -70,11 +58,9 @@ export default function ElegirScreen() {
                         <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
                       </TouchableOpacity>
                     </View>
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/elegir.tsx
         </View>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {
@@ -127,17 +113,14 @@ const styles = StyleSheet.create({
     },
 
     navbar: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingVertical: 15,
+        backgroundColor: '#000',
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/elegir.tsx
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        paddingVertical: 15,
-        backgroundColor: '#fff',
-    },
-=======
       },
       whiteLine: {
         width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
@@ -149,5 +132,4 @@ const styles = StyleSheet.create({
         marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
         zIndex: 100, // Asegura que la línea esté encima del ícono
       },
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/elegir.tsx
 });

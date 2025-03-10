@@ -45,17 +45,7 @@ export default function ResponderScreen() {
 
   return (
     <View style={styles.container}>
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/responder.tsx
-      {/* Imagen de fondo */}
-      <ImageBackground
-        source={require('@/assets/images/fondo.jpeg')}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        {/* Encabezado */}
-=======
-      <ImageBackground source={require('../../assets/images/fondo.jpeg')} style={styles.backgroundImage} resizeMode="cover">
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/responder.tsx
+      <ImageBackground source={require('@/assets/images/fondo.jpeg')} style={styles.backgroundImage} resizeMode="cover">
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.push('/elegir')}>
             <Ionicons name="arrow-back" size={30} color="#000" />

@@ -11,22 +11,14 @@ export default function VerPregun() {
     {
       id: '1',
       autor: 'Alejandra M',
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/ver_pregun.tsx
-      avatar: require('@/assets/images/user.png'),
-=======
       avatar: require('../../assets/images/user.png'),
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/ver_pregun.tsx
       texto: 'React Native permite el desarrollo de aplicaciones móviles usando JavaScript y React, compilando el código a componentes nativos.',
       votos: 5,
       fecha: '2025-03-05T08:30:00',
     },
     {
       autor: 'Axel M',
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/ver_pregun.tsx
-      avatar: require('@/assets/images/user.png'),
-=======
       avatar: require('../../assets/images/user.png'),
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/ver_pregun.tsx
       id: '2',
       texto: 'React Native es una librería que permite crear interfaces de usuario nativas para iOS y Android utilizando JavaScript.',
       votos: 3,
@@ -37,13 +29,7 @@ export default function VerPregun() {
   const votarRespuesta = (idRespuesta) => {
     setRespuestas((prevRespuestas) =>
       prevRespuestas.map((resp) =>
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/ver_pregun.tsx
-        resp.id === idRespuesta
-          ? { ...resp, votos: resp.votos + 1 }
-          : resp
-=======
         resp.id === idRespuesta ? { ...resp, votos: resp.votos + 1 } : resp
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/ver_pregun.tsx
       )
     );
   };
@@ -55,7 +41,7 @@ export default function VerPregun() {
 
   return (
     <ImageBackground
-      source={require('@/assets/images/fondo.jpeg')}
+      source={require('../../assets/images/fondo.jpeg')}
       style={styles.backgroundImage}
       resizeMode="cover"
     >

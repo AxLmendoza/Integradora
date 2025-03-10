@@ -8,11 +8,7 @@ export default function MenuScreen() {
 
   return (
     <ImageBackground
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/menu.tsx
       source={require('@/assets/images/fondo.jpeg')}
-=======
-      source={require('../../assets/images/fondo.jpeg')} // Fondo naranja
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/menu.tsx
       style={styles.backgroundImage}
       resizeMode="cover"
     >

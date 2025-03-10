@@ -44,7 +44,7 @@ export default function CompartirInformacionScreen() {
     <View style={styles.container}>
       {/* Imagen de fondo */}
       <ImageBackground
-        source={require('@/assets/images/fondo.jpeg')}  // Ruta actualizada
+        source={require('../../assets/images/fondo.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -99,19 +99,18 @@ export default function CompartirInformacionScreen() {
       <View style={styles.navbar}>
         <View style={styles.whiteLine}></View>
         <TouchableOpacity onPress={() => router.push('/grupos')}>
-          <Ionicons name="home-outline" size={28} color="#000" />
+          <Ionicons name="home-outline" size={28} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/chat')}>
-          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
+          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/elegir')}>
-          <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
+          <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -198,14 +197,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   navbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 15,
+    backgroundColor: '#000',
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 15,
-    backgroundColor: '#fff',
   },
   whiteLine: {
     width: 70, // Ajusta el ancho de la línea para que solo cubra el ícono de la casa

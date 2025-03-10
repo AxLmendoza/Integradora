@@ -35,23 +35,23 @@ export default function MensajesScreen() {
 
   const renderItem = ({ item }: { item: any }) => (
     <View style={styles.messageItem}>
-      <View style={styles.row}>
-        <Ionicons name="person-circle" size={42} color="#3b3b3b" style={styles.avatar} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.userName}>{item.name}</Text>
-          <Text style={styles.messageText} numberOfLines={1}>
-            {item.text}
-          </Text>
-        </View>
-        <Text style={styles.timeText}>{item.time}</Text>
+    <View style={styles.row}>
+      <Ionicons name="person-circle" size={42} color="#3b3b3b" style={styles.avatar} />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.userName}>{item.name}</Text>
+        <Text style={styles.messageText} numberOfLines={1}>
+          {item.text}
+        </Text>
       </View>
+      <Text style={styles.timeText}>{item.time}</Text>
     </View>
-  );
+  </View>
+);
 
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('@/assets/images/fondo.jpeg')} // Ruta actualizada
+        source={require('../../assets/images/fondo.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -88,18 +88,6 @@ export default function MensajesScreen() {
 
           {/* Barra de navegación inferior */}
           <View style={styles.navbar}>
-<<<<<<< HEAD:mobile/frontend/app/(tabs)/chat.tsx
-            <TouchableOpacity onPress={() => router.push('/grupos')}>
-              <Ionicons name="home-outline" size={28} color="#000" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/chat')}>
-              <Ionicons name="chatbubble-ellipses-outline" size={28} color="#000" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/elegir')}>
-              <Ionicons name="arrow-up-circle-outline" size={28} color="#000" />
-            </TouchableOpacity>
-          </View>
-=======
                     <View style={styles.whiteLine}></View>
                     <TouchableOpacity onPress={() => router.push('/grupos')}>
                       <Ionicons name="home-outline" size={28} color="#fff" />
@@ -111,7 +99,6 @@ export default function MensajesScreen() {
                       <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
                     </TouchableOpacity>
                   </View>
->>>>>>> d28dc25 (Cambios 2.0):mobile/app/(tabs)/chat.tsx
         </View>
       </ImageBackground>
     </View>
@@ -181,9 +168,12 @@ const styles = StyleSheet.create({
   navbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center',
-    height: 60,
-    backgroundColor: '#fff',
+    paddingVertical: 15,
+    backgroundColor: '#000',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   whiteLine: {
     width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
