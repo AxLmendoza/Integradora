@@ -6,144 +6,106 @@ import {
     TextInput,
     TouchableOpacity,
     ImageBackground,
-    FlatList,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { Picker } from '@react-native-picker/picker';
 
-export default function AdGrupos() {
+export default function GruposScreen() {
     const router = useRouter();
-    const [nombreGrupo, setNombreGrupo] = React.useState('');
-    const [categoria, setCategoria] = React.useState('');
-    const [descripcion, setDescripcion] = React.useState('');
-    const [estado, setEstado] = React.useState('Privado'); // Estado por defecto
-    const [codigo, setCodigo] = React.useState('');
-    const [grupos, setGrupos] = React.useState([
-        { id: '1', nombre: 'Grupo 1', descripcion: 'Descripción 1' },
-        { id: '2', nombre: 'Grupo 2', descripcion: 'Descripción 2' },
-        { id: '3', nombre: 'Grupo 3', descripcion: 'Descripción 3' },
-    ]);
+    const [activeTab, setActiveTab] = React.useState('Nuevo');
+    const [selectedEstado, setSelectedEstado] = React.useState('Privado');
 
     return (
         <View style={styles.container}>
-            <ImageBackground
-                source={require('../../assets/images/ad_fondo.jpg')}
-                style={styles.backgroundImage}
-                resizeMode="cover"
-            >
+            <ImageBackground source={require('../../assets/images/ad_fondo.jpg')} style={styles.backgroundImage} resizeMode="cover">
                 <View style={styles.overlay} />
 
-                {/* Header */}
+                {/* Encabezado */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.push('/(tabs)/buscar_pre')}>
+                    <TouchableOpacity onPress={() => router.push('/(tabs)/ad_menu')}>
                         <Ionicons name="menu" size={30} color="#000" />
                     </TouchableOpacity>
-                    <Text style={styles.title}>GRUPOS</Text>
-                    <TouchableOpacity onPress={() => router.push('/(tabs)/elegir')}>
+                    <TouchableOpacity onPress={() => router.push('/(tabs)/ad_usuario')}>
                         <Ionicons name="person-sharp" size={30} color="#000" />
                     </TouchableOpacity>
                 </View>
 
-                {/* Tabs */}
-                <View style={styles.tabContainer}>
-                    <TouchableOpacity style={styles.tab}>
-                        <Text style={styles.tabText}>Nuevo</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.tab}>
-                        <Text style={styles.tabText}>Míos</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.tab}>
-                        <Text style={styles.tabText}>Guardados</Text>
-                    </TouchableOpacity>
+                {/* Tabs de navegación */}
+                <View style={styles.tabs}>
+                    {['Nuevo', 'Míos', 'Guardados'].map(tab => (
+                        <TouchableOpacity
+                            key={tab}
+                            style={[styles.tab, activeTab === tab && styles.activeTab]}
+                            onPress={() => setActiveTab(tab)}
+                        >
+                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                                {tab}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
 
-                {/* Formulario Nuevo Grupo */}
+                {/* Formulario */}
                 <View style={styles.formContainer}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Nombre del grupo"
-                        value={nombreGrupo}
-                        onChangeText={setNombreGrupo}
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Nombre de la categoría"
-                        value={categoria}
-                        onChangeText={setCategoria}
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Definición de la descripción"
-                        value={descripcion}
-                        onChangeText={setDescripcion}
-                    />
+                    <Text style={styles.label}>Nombre</Text>
+                    <View style={styles.inputContainer}>
+                        <TextInput style={styles.input} placeholder="Nombre del grupo" />
+                    </View>
 
-                    {/* Botón para cambiar estado */}
-                    <TouchableOpacity
-                        style={styles.estadoButton}
-                        onPress={() => setEstado(estado === 'Privado' ? 'Público' : 'Privado')}
-                    >
-                        <Text style={styles.estadoButtonText}>{estado}</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.label}>Categorías</Text>
+                    <View style={styles.row}>
+                        <TextInput style={[styles.input, { flex: 1 }]} placeholder="Nombre de la categoría" />
+                        <TouchableOpacity style={styles.addButton}>
+                            <Ionicons name="add" size={24} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
 
-                    {/* Campo de código solo si el estado es "Público" */}
-                    {estado === 'Público' && (
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Código (Cinco números)"
-                            value={codigo}
-                            keyboardType="numeric"
-                            onChangeText={setCodigo}
-                        />
-                    )}
+                    <Text style={styles.label}>Descripción</Text>
+                    <View style={styles.inputContainer}>
+                        <TextInput style={styles.input} placeholder="Definición de la descripción" />
+                    </View>
 
-                    {/* Botón para subir imagen (no funcional aún) */}
-                    <TouchableOpacity
-                        style={styles.imageButton}
-                        onPress={() => alert('Función de subida aún no implementada')}
-                    >
-                        <Text style={styles.imageButtonText}>Subir imagen</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.label}>Estado</Text>
+                    <View style={styles.pickerContainer}>
+                        <Picker
+                            selectedValue={selectedEstado}
+                            onValueChange={(itemValue) => setSelectedEstado(itemValue)}
+                            style={styles.picker}
+                            mode="dropdown"
+                        >
+                            <Picker.Item label="Privado" value="Privado" />
+                            <Picker.Item label="Público" value="Público" />
+                        </Picker>
+                    </View>
 
-                    {/* Botón Crear */}
-                    <TouchableOpacity style={styles.createButton}>
-                        <Text style={styles.createButtonText}>Crear</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.label}>Imagen</Text>
+                    <View style={styles.inputContainer}>
+                        <TextInput style={styles.input} placeholder="Foto" />
+                    </View>
+
+                    <Text style={styles.label}>Código</Text>
+                    <View style={styles.inputContainer}>
+                        <TextInput style={styles.input} placeholder="Cinco números" keyboardType="numeric" />
+                    </View>
                 </View>
 
-                <FlatList
-                    data={grupos}
-                    keyExtractor={(item) => item.id}
-                    style={{ flex: 1 }}
-                    renderItem={({ item }) => (
-                        <View style={styles.groupCard}>
-                            <Text style={styles.groupTitle}>{item.nombre}</Text>
-                            <Text style={styles.groupDescription}>{item.descripcion}</Text>
-                            <View style={styles.groupButtons}>
-                                <TouchableOpacity style={styles.adminButton}>
-                                    <Text style={styles.adminButtonText}>Administrar</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={styles.editButton}
-                                    onPress={() => router.push('/(tabs)/grupo_detalle')}
-                                >
-                                    <Text style={styles.editButtonText}>Editar</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    )}
-                />
+                {/* Botón de acción */}
+                <TouchableOpacity style={styles.button}>
+                    <Text style={styles.buttonText}>{activeTab === 'Nuevo' ? 'Crear' : 'Guardar cambios'}</Text>
+                </TouchableOpacity>
 
-
-                {/* Barra de navegación */}
+                {/* Barra de navegación inferior */}
                 <View style={styles.navbar}>
-                    <TouchableOpacity onPress={() => router.push('/(tabs)/home')}>
+                    {/* Barra blanca justo encima del ícono Home */}
+                    <View style={styles.whiteLine}></View>
+                    <TouchableOpacity onPress={() => router.push('/ad_principal')}>
                         <Ionicons name="home-outline" size={28} color="#fff" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/(tabs)/home')}>
+                    <TouchableOpacity onPress={() => router.push('/ad_chat')}>
                         <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/(tabs)/home')}>
+                    <TouchableOpacity onPress={() => router.push('/ad_elegir')}>
                         <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
                     </TouchableOpacity>
                 </View>
@@ -152,120 +114,45 @@ export default function AdGrupos() {
     );
 }
 
-// Estilos
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    backgroundImage: {
-        flex: 1,
-        justifyContent: 'flex-start',
-    },
-    overlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(255,165,0,0.3)',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 50,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#000',
-    },
-    tabContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginVertical: 10,
-    },
-    tab: {
-        paddingVertical: 8,
-        paddingHorizontal: 15,
-        backgroundColor: 'green',
-        borderRadius: 5,
-    },
-    tabText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    formContainer: {
-        paddingHorizontal: 20,
-    },
-    input: {
-        borderBottomWidth: 1,
-        marginVertical: 10,
-        paddingVertical: 5,
-    },
-    estadoButton: {
-        backgroundColor: '#ffcc00',
-        padding: 10,
-        alignItems: 'center',
-        marginVertical: 10,
-    },
-    estadoButtonText: {
-        fontWeight: 'bold',
-    },
-    imageButton: {
-        backgroundColor: '#999',
-        padding: 10,
-        alignItems: 'center',
-        marginVertical: 10,
-    },
-    imageButtonText: {
-        color: '#fff',
-    },
-    createButton: {
-        backgroundColor: 'green',
-        padding: 10,
-        alignItems: 'center',
-        marginVertical: 10,
-    },
-    createButtonText: {
-        color: '#fff',
-    },
-    groupCard: {
-        padding: 15,
-        backgroundColor: '#fff',
-        marginVertical: 5,
-    },
-    groupTitle: {
-        fontWeight: 'bold',
-    },
-    groupButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-    },
-    editButton: {
-        backgroundColor: 'green',
-        padding: 5,
-    },
-    editButtonText: {
-        color: '#fff',
-    },
+    container: { flex: 1 },
+    backgroundImage: { flex: 1, justifyContent: 'flex-start' },
+    overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,165,0,0.3)' },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 50 },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#000' },
+    tabs: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10, backgroundColor: 'green', paddingVertical: 5, borderRadius: 20 },
+    tab: { paddingVertical: 10, paddingHorizontal: 20 },
+    activeTab: { backgroundColor: '#fff', borderRadius: 20 },
+    tabText: { fontSize: 16, color: '#fff' },
+    activeTabText: { fontWeight: 'bold', color: 'green' },
+    formContainer: { paddingHorizontal: 20, marginTop: 10 },
+    label: { fontSize: 16, fontWeight: 'bold', marginTop: 10 },
+    inputContainer: { borderBottomWidth: 1, borderBottomColor: '#000', marginBottom: 10 },
+    input: { paddingVertical: 10 },
+    row: { flexDirection: 'row', alignItems: 'center' },
+    addButton: { backgroundColor: '#000', padding: 10, borderRadius: 5, marginLeft: 10 },
+    pickerContainer: { borderBottomWidth: 1, borderBottomColor: '#000', marginBottom: 10, justifyContent: 'center' },
+    picker: { height: 40, width: '100%' },
+    button: { backgroundColor: 'green', padding: 15, borderRadius: 5, alignItems: 'center', marginHorizontal: 50, marginTop: 20 },
+    buttonText: { color: '#fff', fontSize: 18 },
     navbar: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        backgroundColor: '#000',
         paddingVertical: 15,
+        backgroundColor: '#000',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
     },
-
-    adminButton: {
-        backgroundColor: 'blue',
-        padding: 5,
-    },
-    adminButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    groupDescription: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 5,
-    },
-
+    whiteLine: {
+        width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
+        height: 5,
+        backgroundColor: '#fff',
+        position: 'absolute',
+        top: 0.5, // Esto coloca la línea justo encima del ícono de la casita
+        left: '13%', // Centra la línea horizontalmente
+        marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
+        zIndex: 100, // Asegura que la línea esté encima del ícono
+    }
 });
