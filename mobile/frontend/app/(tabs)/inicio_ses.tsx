@@ -7,32 +7,28 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const router = useRouter();
-  
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [matricula, setMatricula] = useState('');
   const [nombre, setNombre] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Función para seleccionar la imagen
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert('Se necesitan permisos para acceder a la galería.');
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Se necesitan permisos para acceder a la galería.');
       return;
     }
 
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      base64: true,
-      quality: 0.5,
-    });
-
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({ base64: true, quality: 0.5 });
     if (!pickerResult.canceled) {
       const asset = pickerResult.assets[0];
       setImageUri(asset.uri);
@@ -42,136 +38,82 @@ export default function LoginScreen() {
 
   const analyzeImage = async (base64Image: string) => {
     setLoading(true);
-    const apiKey = 'K89755268888957'; // Reemplaza con tu API Key
+    const apiKey = 'K89755268888957';
     const url = 'https://api.ocr.space/parse/image';
-  
     const formData = new FormData();
     formData.append('apikey', apiKey);
     formData.append('base64Image', 'data:image/png;base64,' + base64Image);
-    formData.append('language', 'spa'); // Procesar en español
-  
+    formData.append('language', 'spa');
+
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch(url, { method: 'POST', body: formData });
       const data = await response.json();
       console.log('OCR Response:', data);
-  
-      if (data.ParsedResults && data.ParsedResults.length > 0) {
+
+      if (data.ParsedResults?.length > 0) {
         let extractedText = data.ParsedResults[0].ParsedText;
         console.log('Texto extraído:', extractedText);
-  
-        // Limpiar y dividir el texto en líneas
+
         const lines = extractedText
-          .split(/\r?\n/)
-          .map((line: string) => line.trim())
-          .filter((line: string) => line !== '');
-        
-        let extractedMatricula = '';
-        let extractedNombre = '';
-  
-        // Buscar la matrícula: línea que contenga exactamente 8 dígitos
-        for (const line of lines) {
-          if (/^\d{8}$/.test(line)) {
-            extractedMatricula = line;
-            break;
-          }
-        }
-  
-        // Buscar el nombre: línea sin números y con al menos 2 palabras que empiecen con mayúsculas
-        for (const line of lines) {
-          if (!/\d/.test(line)) {
-            const words = line.split(/\s+/);
-            let countUpper = 0;
-            for (const word of words) {
-              if (/^[A-ZÁÉÍÓÚÑ]/.test(word)) {
-                countUpper++;
-              }
-            }
-            if (countUpper >= 2) {
-              extractedNombre = line;
-              break;
-            }
-          }
-        }
-  
+        .split(/\r?\n/)
+        .map((line: string) => line.trim()) // Aquí ya declaramos el tipo
+        .filter((line: string) => line !== ''); // Aquí también      
+      
+        const extractedMatricula = lines.find((line: string) => /^\d{8}$/.test(line)) || ''
+        const extractedNombre = lines.find((line: string) => /^[a-zA-Z\sÁÉÍÓÚÑáéíóúñ]+$/.test(line)) || '';
+
         setMatricula(extractedMatricula);
         setNombre(extractedNombre);
       }
     } catch (error) {
       console.error('Error en OCR:', error);
-      alert('Hubo un error al procesar la imagen.');
+      Alert.alert('Error', 'Hubo un problema al procesar la imagen.');
     }
     setLoading(false);
   };
+
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('http://192.168.83.127:3001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: matricula, contrasena: password }), // Asegúrate de usar "correo" en lugar de "matricula"
+      });
   
-
-  // Función para manejar el inicio de sesión
-  const handleLogin = () => {
-    if (matricula.trim() === '' || password.trim() === '') {
-      alert('Por favor ingresa tu matrícula y contraseña.');
-      return;
+      const data = await response.json();
+      console.log('Respuesta del backend:', data); // <-- Agrega esto
+  
+      if (response.ok) {
+        await AsyncStorage.setItem('token', data.token);
+        Alert.alert('Bienvenido', `Hola, ${nombre}.`);
+        router.push('/grupos');
+      } else {
+        Alert.alert('Error', data.message || 'Credenciales incorrectas.');
+      }
+    } catch (error) {
+      console.error('Error en login:', error);
+      Alert.alert('Error', 'No se pudo conectar con el servidor.');
     }
-
-    // Aquí puedes hacer la petición al backend para validar las credenciales
-    console.log('Iniciando sesión con:', { usuario: matricula, contraseña: password });
-
-    // Simulación de inicio de sesión exitoso
-    alert('Bienvenido, ' + nombre + ', has iniciado sesión correctamente. Recuerda que tu contraseña es: ' + password + '.');
-    alert('Si tus datos están mal, vuelve a crear tu usuario. Validaremos que seas de la universidad UTTECAM; si no eres de la universidad, no podrás acceder a la aplicación y serás dado de baja.');
-
-    router.push('/grupos'); // Redirigir a la pantalla de grupos
   };
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Iniciar Sesión</Text>
-
-      {/* Botón para seleccionar imagen */}
       <TouchableOpacity style={styles.button} onPress={pickImage}>
         <Text style={styles.buttonText}>Subir imagen</Text>
       </TouchableOpacity>
-
-      {/* Mostrar imagen seleccionada */}
       {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
-
       {loading && <ActivityIndicator size="large" color="#ff6b00" />}
-
-      {/* Campos de entrada */}
-      <TextInput
-        style={styles.input}
-        placeholder="Matrícula"
-        placeholderTextColor="#666"
-        value={matricula}
-        editable={false}
-        onChangeText={setMatricula}
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre"
-        placeholderTextColor="#666"
-        value={nombre}
-        editable={false}
-        onChangeText={setNombre}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        placeholderTextColor="#666"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      {/* Botón de inicio de sesión */}
+      <TextInput style={styles.input} placeholder="Matrícula" value={matricula} editable={false} />
+      <TextInput style={styles.input} placeholder="Nombre" value={nombre} editable={false} />
+      <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Iniciar sesión</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#fff' },
