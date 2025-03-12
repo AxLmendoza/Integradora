@@ -11,118 +11,125 @@ import {
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 
+import React, { useState } from 'react';
+import { useRouter } from 'next/router';
+import * as ImagePicker from 'expo-image-picker';
+
 export default function LoginScreen() {
   const router = useRouter();
-  
+
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [matricula, setMatricula] = useState('');
   const [nombre, setNombre] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Función para seleccionar la imagen
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert('Se necesitan permisos para acceder a la galería.');
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Se necesitan permisos para acceder a la galería.');
+        return;
+      }
 
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      base64: true,
-      quality: 0.5,
-    });
+      const pickerResult = await ImagePicker.launchImageLibraryAsync({
+        base64: true,
+        quality: 0.5,
+      });
 
-    if (!pickerResult.canceled) {
-      const asset = pickerResult.assets[0];
-      setImageUri(asset.uri);
-      analyzeImage(asset.base64!);
+      if (!pickerResult.canceled && pickerResult.assets.length > 0) {
+        const asset = pickerResult.assets[0];
+        setImageUri(asset.uri);
+        if (asset.base64) {
+          analyzeImage(asset.base64);
+        }
+      }
+    } catch (error) {
+      console.error('Error al seleccionar la imagen:', error);
+      alert('Hubo un error al seleccionar la imagen.');
     }
   };
 
   const analyzeImage = async (base64Image: string) => {
     setLoading(true);
-    const apiKey = 'K89755268888957'; // Reemplaza con tu API Key
+    const apiKey = 'K89755268888957'; // Reemplazar con una variable segura
     const url = 'https://api.ocr.space/parse/image';
-  
+
     const formData = new FormData();
     formData.append('apikey', apiKey);
-    formData.append('base64Image', 'data:image/png;base64,' + base64Image);
-    formData.append('language', 'spa'); // Procesar en español
-  
+    formData.append('base64Image', `data:image/png;base64,${base64Image}`);
+    formData.append('language', 'spa');
+
     try {
       const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
       const data = await response.json();
-      console.log('OCR Response:', data);
-  
+
       if (data.ParsedResults && data.ParsedResults.length > 0) {
-        let extractedText = data.ParsedResults[0].ParsedText;
+        let extractedText = data.ParsedResults[0].ParsedText || '';
         console.log('Texto extraído:', extractedText);
-  
-        // Limpiar y dividir el texto en líneas
+
         const lines = extractedText
           .split(/\r?\n/)
-          .map((line: string) => line.trim())
-          .filter((line: string) => line !== '');
-        
+          .map(line => line.trim())
+          .filter(line => line !== '' && !/^\d{10,}$/.test(line));
+
         let extractedMatricula = '';
         let extractedNombre = '';
-  
-        // Buscar la matrícula: línea que contenga exactamente 8 dígitos
+
+        const matriculaRegex = /\b\d{8}\b/;
         for (const line of lines) {
-          if (/^\d{8}$/.test(line)) {
-            extractedMatricula = line;
+          if (matriculaRegex.test(line)) {
+            extractedMatricula = line.match(matriculaRegex)?.[0] || '';
             break;
           }
         }
-  
-        // Buscar el nombre: línea sin números y con al menos 2 palabras que empiecen con mayúsculas
+
         for (const line of lines) {
           if (!/\d/.test(line)) {
             const words = line.split(/\s+/);
-            let countUpper = 0;
-            for (const word of words) {
-              if (/^[A-ZÁÉÍÓÚÑ]/.test(word)) {
-                countUpper++;
-              }
-            }
+            const countUpper = words.filter(word => /^[A-ZÁÉÍÓÚÑ]/.test(word)).length;
             if (countUpper >= 2) {
               extractedNombre = line;
               break;
             }
           }
         }
-  
+
         setMatricula(extractedMatricula);
         setNombre(extractedNombre);
       }
     } catch (error) {
       console.error('Error en OCR:', error);
       alert('Hubo un error al procesar la imagen.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
-  
 
-  // Función para manejar el inicio de sesión
   const handleLogin = () => {
-    if (matricula.trim() === '' || password.trim() === '') {
+    if (!matricula.trim() || !password.trim()) {
       alert('Por favor ingresa tu matrícula y contraseña.');
       return;
     }
 
-    // Aquí puedes hacer la petición al backend para validar las credenciales
     console.log('Iniciando sesión con:', { usuario: matricula, contraseña: password });
-
-    // Simulación de inicio de sesión exitoso
-    alert('Bienvenido, ' + nombre + ', has iniciado sesión correctamente. Recuerda que tu contraseña es: ' + password + '.');
+    alert(`Bienvenido, ${nombre}. Has iniciado sesión correctamente.`);
     alert('Si tus datos están mal, vuelve a crear tu usuario. Validaremos que seas de la universidad UTTECAM; si no eres de la universidad, no podrás acceder a la aplicación y serás dado de baja.');
-
-    router.push('/grupos'); // Redirigir a la pantalla de grupos
+    
+    router.push('/grupos');
   };
+
+  return (
+    <div>
+      <h1>Pantalla de Inicio de Sesión</h1>
+      {/* Aquí iría el formulario y los botones */}
+    </div>
+  );
+}
+
 
   return (
     <View style={styles.container}>
