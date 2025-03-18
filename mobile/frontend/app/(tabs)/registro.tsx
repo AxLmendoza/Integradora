@@ -44,7 +44,12 @@ export default function RegisterScreen() {
   // Seleccionar imagen y extraer texto con OCR
   const pickImage = async () => {
     console.log('Seleccionando imagen...');
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({ base64: true, quality: 0.5 });
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({ 
+      base64: true, 
+      quality: 0.7, // Aumenta la calidad de la imagen
+      allowsEditing: true // Permite recortar imagen antes de procesarla
+    });
+  
     if (!pickerResult.canceled && pickerResult.assets?.length) {
       const asset = pickerResult.assets[0];
       setImageUri(asset.uri);
@@ -52,10 +57,8 @@ export default function RegisterScreen() {
       await analyzeImage(asset.base64!);
     }
   };
+  
 
-
-
-  // Extraer texto con OCR.Space
   const analyzeImage = async (base64Image: string) => {
     setLoading(true);
     const apiKey = 'K89755268888957';
@@ -64,26 +67,35 @@ export default function RegisterScreen() {
     formData.append('apikey', apiKey);
     formData.append('base64Image', `data:image/png;base64,${base64Image}`);
     formData.append('language', 'spa');
-
+    formData.append('isTable', 'true'); // Activa el modo tabla si la imagen tiene estructura
+  
     try {
       console.log('Enviando imagen a OCR...');
       const response = await fetch(ocrUrl, { method: 'POST', body: formData });
       const data = await response.json();
       console.log('Respuesta OCR:', data);
-
+  
       if (data.ParsedResults?.length > 0) {
         const extractedText = data.ParsedResults[0].ParsedText;
         console.log('Texto extraído:', extractedText);
-
+  
         const lines = extractedText
           .split(/\r?\n/)
           .map((line: string) => line.trim())
           .filter((line: string) => line !== '');
-
+  
         const extractedMatricula = lines.find((line: string) => /^\d{8}$/.test(line)) || '';
-        const extractedNombre = lines.find((line: string) => /^[a-zA-Z\sÁÉÍÓÚÑáéíóúñ]+$/.test(line)) || '';
-
+        let extractedNombre = lines.find((line: string) => /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(line)) || '';
+  
         if (extractedMatricula && extractedNombre) {
+          // Formateo más inteligente del nombre
+          extractedNombre = extractedNombre
+          .replace(/\s{2,}/g, ' ') // Eliminar espacios extra
+          .split(/\s+/)
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Especificar tipo string
+          .join(' ');
+        
+  
           setMatricula(extractedMatricula);
           setNombre(extractedNombre);
         } else {
@@ -96,6 +108,8 @@ export default function RegisterScreen() {
     }
     setLoading(false);
   };
+  
+    
 
   // Inicio de sesión o registro automático
   const handleLogin = async () => {
@@ -183,7 +197,6 @@ export default function RegisterScreen() {
           <TouchableOpacity style={styles.button} onPress={pickImage}>
             <Text style={styles.buttonText}>Subir imagen (Extraer credencial)</Text>
           </TouchableOpacity>
-          {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
           {loading && <ActivityIndicator size="large" color="#ff6b00" />}
           <TextInput style={styles.input} placeholder="Matrícula" value={matricula} editable={false} />
           <TextInput style={styles.input} placeholder="Nombre" value={nombre} editable={false} />
