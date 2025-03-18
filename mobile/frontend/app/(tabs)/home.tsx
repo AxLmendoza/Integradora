@@ -16,7 +16,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('@/assets/images/personas_2.jpg')}
+        source={require('@/assets/images/fondo_inicio.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -27,7 +27,7 @@ export default function HomeScreen() {
         <View style={styles.contentContainer}>
           {/* Logo */}
           <Image
-            source={require('@/assets/images/ardilla_naranja.png')}
+            source={require('@/assets/images/ardilla.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -86,8 +86,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logo: {
-    width: 190,
-    height: 190,
+    width: 500,
+    height: 300,
     marginBottom: 20,
   },
   title: {

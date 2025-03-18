@@ -4,6 +4,7 @@ import {
   Text,
   View,
   TextInput,
+  ImageBackground,
   TouchableOpacity,
   Image,
   ActivityIndicator,
@@ -14,9 +15,9 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.1.103:3001/api/auth';
+const API_URL = 'http://10.1.1.118:3001/api/auth';
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const router = useRouter();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [matricula, setMatricula] = useState('');
@@ -52,7 +53,7 @@ export default function LoginScreen() {
     }
   };
 
-  
+
 
   // Extraer texto con OCR.Space
   const analyzeImage = async (base64Image: string) => {
@@ -102,7 +103,7 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Debe ingresar todos los datos.');
       return;
     }
-  
+
     try {
       console.log('Enviando login con:', { matricula, password });
       let response = await fetch(`${API_URL}/login`, {
@@ -112,7 +113,7 @@ export default function LoginScreen() {
       });
       let data = await response.json();
       console.log('Respuesta login:', data);
-  
+
       if (response.ok) {
         await AsyncStorage.setItem('token', data.token);
         await AsyncStorage.setItem('carrera', carrera);  // Guardar carrera en AsyncStorage
@@ -120,7 +121,7 @@ export default function LoginScreen() {
         router.push('/grupos');
         return;
       }
-  
+
       // Si el error indica "Usuario no encontrado", registramos automáticamente
       if (data.error && data.error.toLowerCase().includes('no encontrado')) {
         console.log('Usuario no encontrado, registrando...');
@@ -131,13 +132,13 @@ export default function LoginScreen() {
         });
         const regData = await regResponse.json();
         console.log('Respuesta registro:', regData);
-  
+
         if (!regResponse.ok) {
           throw new Error(regData.error || 'Error en el registro');
         }
-  
+
         Alert.alert('Registro', 'Usuario registrado. Iniciando sesión...');
-  
+
         // Luego, intenta login nuevamente
         response = await fetch(`${API_URL}/login`, {
           method: 'POST',
@@ -163,44 +164,68 @@ export default function LoginScreen() {
       Alert.alert('Error', 'No se pudo conectar con el servidor: ' + errorMessage);
     }
   };
-  
+
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Iniciar Sesión</Text>
-      <TouchableOpacity style={styles.button} onPress={pickImage}>
-        <Text style={styles.buttonText}>Subir imagen (Extraer credencial)</Text>
-      </TouchableOpacity>
-      {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
-      {loading && <ActivityIndicator size="large" color="#ff6b00" />}
-      <TextInput style={styles.input} placeholder="Matrícula" value={matricula} editable={false} />
-      <TextInput style={styles.input} placeholder="Nombre" value={nombre} editable={false} />
-      <TextInput style={styles.input} placeholder="Correo electrónico" value={correo} onChangeText={setCorreo} />
-      
-      <Picker
-        selectedValue={carrera}
-        onValueChange={(value) => setCarrera(value)}
-        style={styles.input}
-      >
-        <Picker.Item label="Seleccione su carrera" value="" />
-        <Picker.Item label="Ingeniería en Software" value="Ingeniería en Software" />
-        <Picker.Item label="Administración de Empresas" value="Administración de Empresas" />
-        <Picker.Item label="Arquitectura" value="Arquitectura" />
-      </Picker>
-      
-      <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
-      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={!matricula || !password || !correo || !carrera}>
-        <Text style={styles.buttonText}>Iniciar Sesión</Text>
-      </TouchableOpacity>
+      <ImageBackground source={require('@/assets/images/fondo_registro.jpeg')} style={styles.backgroundImage}>
+        <View style={styles.overlay} />
+        <View style={styles.contentContainer}>
+          <Image source={require('@/assets/images/ardilla.png')} style={styles.logo} resizeMode="contain" />
+          <View style={styles.switchContainer}>
+            <TouchableOpacity style={styles.switchButtonActive}>
+              <Text style={styles.switchTextActive}>Regístrate</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.switchButtonInactive} onPress={() => router.push('/inicio_ses')}>
+              <Text style={styles.switchTextInactive}>Inicia sesión</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={styles.button} onPress={pickImage}>
+            <Text style={styles.buttonText}>Subir imagen (Extraer credencial)</Text>
+          </TouchableOpacity>
+          {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
+          {loading && <ActivityIndicator size="large" color="#ff6b00" />}
+          <TextInput style={styles.input} placeholder="Matrícula" value={matricula} editable={false} />
+          <TextInput style={styles.input} placeholder="Nombre" value={nombre} editable={false} />
+          <TextInput style={styles.input} placeholder="Correo electrónico" value={correo} onChangeText={setCorreo} />
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={carrera}
+              onValueChange={(value) => setCarrera(value)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Seleccione su carrera" value="" />
+              <Picker.Item label="Ingeniería en Software" value="Ingeniería en Software" />
+              <Picker.Item label="Administración de Empresas" value="Administración de Empresas" />
+              <Picker.Item label="Arquitectura" value="Arquitectura" />
+            </Picker>
+          </View>
+          <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
+          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={!matricula || !password || !correo || !carrera}>
+          <Text style={styles.buttonText}>Crear cuenta</Text>
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, color: '#ff6b00' },
-  input: { width: '100%', backgroundColor: '#eee', padding: 10, borderRadius: 10, marginBottom: 10 },
-  button: { backgroundColor: '#ff6b00', padding: 12, borderRadius: 25, alignItems: 'center', width: '100%', marginTop: 10 },
+  container: { flex: 1 },
+  backgroundImage: { flex: 1, justifyContent: 'center' },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)' },
+  contentContainer: { alignItems: 'center', padding: 20 },
+  switchContainer: { flexDirection: 'row', marginBottom: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 25 },
+  switchButtonInactive: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 25 },
+  switchButtonActive: { backgroundColor: '#ff6b00', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 25 },
+  switchTextInactive: { color: '#666', fontSize: 16 },
+  switchTextActive: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  logo: { width: 150, height: 150, marginBottom: 20 },
+  input: { width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: 10, borderRadius: 10, marginBottom: 10 },
+  pickerContainer: { width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: 10, marginBottom: 10 },
+  picker: { width: '100%', height: 50, padding: 10 },
+  button: { backgroundColor: '#ff6b00', padding: 12, borderRadius: 25, alignItems: 'center', marginBottom: 20 }, // Añado un margen inferior
   buttonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  image: { width: 200, height: 200, marginVertical: 10, borderRadius: 10 },
+  linkText: { color: '#ff6b00', marginTop: 10, fontWeight: 'bold' },
+  image: { width: 200, height: 200, marginBottom: 20 }, // Agrega esta línea
 });

@@ -19,7 +19,7 @@ export default function HomeScreen() {
       onPress={() => router.push('/home')}
     >
       <ImageBackground
-        source={require('@/assets/images/personas_1.jpg')}
+        source={require('@/assets/images/fondo_principal.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -29,7 +29,7 @@ export default function HomeScreen() {
           {/* Logo tocable para navegar */}
           <TouchableOpacity onPress={() => router.push('/home')}>
             <Image
-              source={require('@/assets/images/ardilla_naranja.png')}
+              source={require('@/assets/images/ardilla.png')}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0)', // Menor opacidad para que el logo resalte más
   },
   contentContainer: {
     flex: 1,
@@ -60,8 +60,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logo: {
-    width: 290,
-    height: 250,
+    width: 500,
+    height: 350,
     marginBottom: 20,
+    // Sin borde ni sombra, solo el logo tal como está
   },
 });
+
