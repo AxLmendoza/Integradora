@@ -1,0 +1,40 @@
+{
+  "dependencies": {
+    "@babel/core": "^7.26.9",
+    "@babel/plugin-transform-async-generator-functions": "^7.26.8",
+    "@babel/plugin-transform-json-strings": "^7.25.9",
+    "@babel/plugin-transform-object-rest-spread": "^7.25.9",
+    "@babel/plugin-transform-optional-catch-binding": "^7.25.9",
+    "@babel/plugin-transform-unicode-property-regex": "^7.25.9",
+    "@babel/preset-env": "^7.1.6",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "@react-native-picker/picker": "^2.11.0",
+    "@react-navigation/native": "^7.0.15",
+    "@react-navigation/native-stack": "^7.2.1",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.9",
+    "axios": "^1.8.1",
+    "bcrypt": "^5.1.1",
+    "expo-image-picker": "~16.0.6",
+    "expo-linear-gradient": "~14.0.2",
+    "expo-router": "^4.0.17",
+    "expo-splash-screen": "~0.29.22",
+    "expo-status-bar": "~2.0.1",
+    "install-expo-modules": "^0.11.4",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-native": "0.76.7",
+    "react-native-gesture-handler": "~2.20.2",
+    "react-native-reanimated": "~3.16.1",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-vector-icons": "^10.2.0",
+    "react-native-web": "~0.19.13",
+    "typescript": "^5.8.2",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12",
+    "@types/react-native": "^0.72.8"
+  }
+}

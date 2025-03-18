@@ -7,15 +7,35 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
-  Keyboard
+  Keyboard,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = React.useState('')
-    ;
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [carrera, setCarrera] = React.useState<string | null>(null);
+
+  // Obtener la carrera desde AsyncStorage
+  React.useEffect(() => {
+    const fetchCarrera = async () => {
+      try {
+        const storedCarrera = await AsyncStorage.getItem('carrera');
+        if (storedCarrera) {
+          setCarrera(storedCarrera);
+        } else {
+          Alert.alert('Error', 'No se pudo obtener la carrera.');
+        }
+      } catch (error) {
+        console.error('Error obteniendo la carrera:', error);
+      }
+    };
+
+    fetchCarrera();
+  }, []);
 
   const handleSearchSubmit = () => {
     if (searchQuery.trim() !== '') {
@@ -42,6 +62,9 @@ export default function HomeScreen() {
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
         </View>
+
+        {/* Muestra la carrera como título */}
+        {carrera && <Text style={styles.carreraTitle}>{carrera}</Text>}
 
         {/* Título */}
         <Text style={styles.title}>Buscar pregunta</Text>
@@ -110,11 +133,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
   },
+  carreraTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+    color: '#000',
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 10,
     marginBottom: 5,
     color: '#000',
   },
@@ -126,7 +156,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginHorizontal: 30,
     marginBottom: 15,
-    marginTop: 20,
+    marginTop: 10,
   },
   searchInput: {
     flex: 1,
@@ -136,7 +166,6 @@ const styles = StyleSheet.create({
     marginLeft: 50,
   },
   contentContainer: {
-
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -156,13 +185,13 @@ const styles = StyleSheet.create({
     right: 0,
   },
   whiteLine: {
-    width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
+    width: 65,
     height: 5,
     backgroundColor: '#fff',
     position: 'absolute',
-    top: 0.5, // Esto coloca la línea justo encima del ícono de la casita
-    left: '13%', // Centra la línea horizontalmente
-    marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
-    zIndex: 100, // Asegura que la línea esté encima del ícono
+    top: 0.5,
+    left: '13%',
+    marginLeft: -20,
+    zIndex: 100,
   },
 });

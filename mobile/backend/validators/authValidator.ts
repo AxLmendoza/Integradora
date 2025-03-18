@@ -1,14 +1,27 @@
-// validators/authValidator.ts
-import { body } from 'express-validator';
+import { Request, Response, NextFunction } from 'express';
 
-export const registerValidator = [
-  body('username').isString().withMessage('El nombre de usuario es obligatorio'),
-  body('email').isEmail().withMessage('El correo electrónico no es válido'),
-  body('password').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
-  body('program').notEmpty().withMessage('El programa educativo es obligatorio'),
-];
+// Validación para el login
+export const validateLogin = (req: Request, res: Response, next: NextFunction) => {
+  const { matricula, password } = req.body;
 
-export const loginValidator = [
-  body('username').isString().withMessage('El nombre de usuario es obligatorio'),
-  body('password').isLength({ min: 6 }).withMessage('La contraseña es obligatoria'),
-];
+  if (!matricula?.trim() || !password?.trim()) {
+    return res.status(400).json({ message: 'Matrícula y contraseña son requeridos.' });
+  }
+
+  next();
+};
+
+// Validación para el registro
+export const validateRegister = (req: Request, res: Response, next: NextFunction) => {
+  const { matricula, nombre, password } = req.body;
+
+  if (!matricula?.trim() || !nombre?.trim() || !password?.trim()) {
+    return res.status(400).json({ message: 'Todos los campos son requeridos.' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' });
+  }
+
+  next();
+};

@@ -36,6 +36,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "proxies": [
+      {
+        "path": "/api/*",
+        "proxy": "http://172.17.48.130:3001"
+      }
+    ]
   }
 }

@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 const preguntasEjemplo = [
   { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('../../assets/images/user.png') },
   { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('../../assets/images/user.png') },
-  { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('../../assets/images/user.png')},
+  { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('../../assets/images/user.png') },
 ];
 
 export default function BuscarPre() {
@@ -34,7 +34,7 @@ export default function BuscarPre() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('../../assets/images/fondo.jpeg')}
+        source={require('@/assets/images/fondo.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -42,9 +42,9 @@ export default function BuscarPre() {
 
         {/* Encabezado con iconos */}
         <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.push('/grupos')}>
-                  <Ionicons name="arrow-back" size={30} color="#000" />
-                </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/grupos')}>
+            <Ionicons name="arrow-back" size={30} color="#000" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
@@ -74,7 +74,7 @@ export default function BuscarPre() {
               style={styles.item}
               onPress={() => router.push(`/ver_pregun?id=${item.id}`)}
             >
-              <View style={styles.userContainer }>
+              <View style={styles.userContainer}>
                 <Image source={item.avatar} style={styles.userAvatar} />
                 <Text style={styles.autor}>{item.autor}</Text>
               </View>
