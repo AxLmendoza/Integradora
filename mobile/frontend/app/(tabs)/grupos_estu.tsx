@@ -64,7 +64,16 @@ export default function GruposEstuScreen() {
                                 <Text style={styles.groupDescription}>{group.description}</Text>
                                 <TouchableOpacity
                                     style={styles.joinButton}
-                                    onPress={() => router.push({ pathname: '/grupo_detalle', params: { titulo: group.title, descripcion: group.description } })}
+                                    onPress={() => {
+                                        if (group.title === 'MATEMÁTICAS SIUUU') {
+                                            router.push('/verificacion_cod'); // Redirigir a la pantalla de verificación de código
+                                        } else {
+                                            router.push({
+                                                pathname: '/grupo_detalle',
+                                                params: { titulo: group.title, descripcion: group.description }
+                                            });
+                                        }
+                                    }}
                                 >
                                     <Text style={styles.joinButtonText}>UNIRTE</Text>
                                 </TouchableOpacity>
@@ -79,17 +88,17 @@ export default function GruposEstuScreen() {
 
                 {/* Barra de navegación inferior */}
                 <View style={styles.navbar}>
-                          <View style={styles.whiteLine}></View>
-                          <TouchableOpacity onPress={() => router.push('/grupos')}>
-                            <Ionicons name="home-outline" size={28} color="#fff" />
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => router.push('/chat')}>
-                            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => router.push('/elegir')}>
-                            <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
-                          </TouchableOpacity>
-                        </View>
+                    <View style={styles.whiteLine}></View>
+                    <TouchableOpacity onPress={() => router.push('/grupos')}>
+                        <Ionicons name="home-outline" size={28} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/chat')}>
+                        <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/elegir')}>
+                        <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
+                    </TouchableOpacity>
+                </View>
             </ImageBackground>
         </View>
     );
@@ -208,8 +217,8 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-      },
-      whiteLine: {
+    },
+    whiteLine: {
         width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
         height: 5,
         backgroundColor: '#fff',
@@ -218,5 +227,5 @@ const styles = StyleSheet.create({
         left: '13%', // Centra la línea horizontalmente
         marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
         zIndex: 100, // Asegura que la línea esté encima del ícono
-      },
+    },
 });

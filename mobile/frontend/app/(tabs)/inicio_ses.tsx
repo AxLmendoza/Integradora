@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://10.1.1.118:3001/api/auth'; // Asegúrate de que la IP y puerto sean correctos
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.94:3001/api/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -26,37 +26,38 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Debe ingresar matrícula y contraseña.');
       return;
     }
-
+  
     setLoading(true);
     try {
-      console.log('Enviando login con:', { matricula, password });
+      console.log('📤 Enviando login con:', { matricula, password });
+  
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matricula, password }),
       });
-
+  
       const data = await response.json();
-      console.log('Respuesta login:', data);
-
+      console.log('📥 Respuesta login:', data);
+  
       if (response.ok) {
-        // Guardamos el token recibido
         await AsyncStorage.setItem('token', data.token);
-        // Guardamos la carrera del usuario si viene en la respuesta
         if (data.carrera) {
           await AsyncStorage.setItem('carrera', data.carrera);
         }
         Alert.alert('Bienvenido', 'Inicio de sesión exitoso.');
-        router.push('/grupos'); // Redirige a la pantalla principal
+        router.push('/grupos');
       } else {
-        throw new Error(data.error || 'Error en el inicio de sesión');
+        console.log("❌ Error en login:", data.error);
+        Alert.alert('Error', data.error || 'Credenciales incorrectas.');
       }
     } catch (error) {
-      console.error('Error en login:', error);
-      Alert.alert('Error', 'Verifica el usuario o la contraseña.');
+      console.error('🚨 Error en login:', error);
+      Alert.alert('Error', 'No se pudo conectar con el servidor.');
     }
     setLoading(false);
   };
+  
 
   return (
     <View style={styles.container}>

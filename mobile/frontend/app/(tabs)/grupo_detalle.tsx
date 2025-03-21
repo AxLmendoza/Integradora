@@ -23,7 +23,7 @@ export default function GrupoDetalleScreen() {
     const router = useRouter();
     const { titulo, descripcion } = useLocalSearchParams();
     const tituloString = Array.isArray(titulo) ? titulo[0] : titulo;
-    const groupImage = groupImages[tituloString] || require('../../assets/images/fondo.jpeg');
+    const groupImage = groupImages[tituloString] || require('@/assets/images/fondo.jpeg');
 
     return (
         <View style={styles.container}>

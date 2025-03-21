@@ -13,9 +13,9 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message'; // ✅ Importar Toast
 
-const API_URL = 'http://10.1.1.118:3001/api/auth';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.94:3001/api/auth';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -27,7 +27,7 @@ export default function RegisterScreen() {
   const [carrera, setCarrera] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Solicita permisos al iniciar la app
+  // 📌 Solicita permisos de galería al iniciar
   useEffect(() => {
     (async () => {
       try {
@@ -41,24 +41,24 @@ export default function RegisterScreen() {
     })();
   }, []);
 
-  // Seleccionar imagen y extraer texto con OCR
+  // 📸 Seleccionar imagen y extraer datos con OCR
   const pickImage = async () => {
-    console.log('Seleccionando imagen...');
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({ 
-      base64: true, 
-      quality: 0.7, // Aumenta la calidad de la imagen
-      allowsEditing: true // Permite recortar imagen antes de procesarla
+    console.log('📸 Seleccionando imagen...');
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      base64: true,
+      quality: 0.7,
+      allowsEditing: true
     });
-  
+
     if (!pickerResult.canceled && pickerResult.assets?.length) {
       const asset = pickerResult.assets[0];
       setImageUri(asset.uri);
-      console.log('Imagen seleccionada:', asset.uri);
+      console.log('✅ Imagen seleccionada:', asset.uri);
       await analyzeImage(asset.base64!);
     }
   };
-  
 
+  // 🔍 Analizar la imagen con OCR y extraer matrícula y nombre
   const analyzeImage = async (base64Image: string) => {
     setLoading(true);
     const apiKey = 'K89755268888957';
@@ -67,35 +67,32 @@ export default function RegisterScreen() {
     formData.append('apikey', apiKey);
     formData.append('base64Image', `data:image/png;base64,${base64Image}`);
     formData.append('language', 'spa');
-    formData.append('isTable', 'true'); // Activa el modo tabla si la imagen tiene estructura
-  
+
     try {
-      console.log('Enviando imagen a OCR...');
+      console.log('📤 Enviando imagen a OCR...');
       const response = await fetch(ocrUrl, { method: 'POST', body: formData });
       const data = await response.json();
-      console.log('Respuesta OCR:', data);
-  
+      console.log('📥 Respuesta OCR:', data);
+
       if (data.ParsedResults?.length > 0) {
         const extractedText = data.ParsedResults[0].ParsedText;
-        console.log('Texto extraído:', extractedText);
-  
+        console.log('📝 Texto extraído:', extractedText);
+
         const lines = extractedText
           .split(/\r?\n/)
           .map((line: string) => line.trim())
           .filter((line: string) => line !== '');
-  
+
         const extractedMatricula = lines.find((line: string) => /^\d{8}$/.test(line)) || '';
         let extractedNombre = lines.find((line: string) => /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(line)) || '';
-  
+
         if (extractedMatricula && extractedNombre) {
-          // Formateo más inteligente del nombre
           extractedNombre = extractedNombre
-          .replace(/\s{2,}/g, ' ') // Eliminar espacios extra
-          .split(/\s+/)
-          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Especificar tipo string
-          .join(' ');
-        
-  
+            .replace(/\s{2,}/g, ' ')
+            .split(/\s+/)
+            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+
           setMatricula(extractedMatricula);
           setNombre(extractedNombre);
         } else {
@@ -103,82 +100,64 @@ export default function RegisterScreen() {
         }
       }
     } catch (error) {
-      console.error('Error en OCR:', error);
+      console.error('🚨 Error en OCR:', error);
       Alert.alert('Error', 'Hubo un problema al procesar la imagen.');
     }
     setLoading(false);
   };
-  
-    
 
-  // Inicio de sesión o registro automático
-  const handleLogin = async () => {
-    if (!matricula || !password || !correo || !carrera) {
-      Alert.alert('Error', 'Debe ingresar todos los datos.');
+  // 🔹 Registrar usuario (sin login automático)
+  // 🔹 Registrar usuario
+  const handleRegister = async () => {
+    if (!matricula || !nombre || !correo || !carrera || !password) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Todos los campos son obligatorios.',
+      });
       return;
     }
 
+    setLoading(true);
     try {
-      console.log('Enviando login con:', { matricula, password });
-      let response = await fetch(`${API_URL}/login`, {
+      console.log('📤 Enviando registro con:', { matricula, nombre, correo, carrera, password });
+
+      const response = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula, password }),
+        body: JSON.stringify({ matricula, nombre, correo, carrera, password }),
       });
-      let data = await response.json();
-      console.log('Respuesta login:', data);
+
+      const data = await response.json();
+      console.log('📥 Respuesta registro:', data);
 
       if (response.ok) {
-        await AsyncStorage.setItem('token', data.token);
-        await AsyncStorage.setItem('carrera', carrera);  // Guardar carrera en AsyncStorage
-        Alert.alert('Bienvenido', `Hola, ${nombre}.`);
-        router.push('/grupos');
-        return;
-      }
-
-      // Si el error indica "Usuario no encontrado", registramos automáticamente
-      if (data.error && data.error.toLowerCase().includes('no encontrado')) {
-        console.log('Usuario no encontrado, registrando...');
-        const regResponse = await fetch(`${API_URL}/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ matricula, nombre, correo, carrera, password }),
+        Toast.show({
+          type: 'success',
+          text1: 'Registro exitoso',
+          text2: 'Tu cuenta ha sido creada correctamente.',
         });
-        const regData = await regResponse.json();
-        console.log('Respuesta registro:', regData);
 
-        if (!regResponse.ok) {
-          throw new Error(regData.error || 'Error en el registro');
-        }
-
-        Alert.alert('Registro', 'Usuario registrado. Iniciando sesión...');
-
-        // Luego, intenta login nuevamente
-        response = await fetch(`${API_URL}/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ matricula, password }),
-        });
-        data = await response.json();
-        if (response.ok) {
-          await AsyncStorage.setItem('token', data.token);
-          await AsyncStorage.setItem('carrera', carrera);  // Guardar carrera en AsyncStorage después del registro
-          Alert.alert('Bienvenido', `Hola, ${nombre}.`);
-          router.push('/inicio_ses');
-          return;
-        } else {
-          throw new Error(data.error || 'Error al iniciar sesión después del registro');
-        }
+        setTimeout(() => {
+          router.push('/inicio_ses'); // 🔹 Redirige manualmente al login
+        }, 2000);
       } else {
-        throw new Error(data.error || 'Error en el login');
+        Toast.show({
+          type: 'error',
+          text1: 'Error en registro',
+          text2: data.error || 'No se pudo registrar el usuario.',
+        });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Error en login:', error);
-      Alert.alert('Error', 'No se pudo conectar con el servidor: ' + errorMessage);
+      console.error('🚨 Error en registro:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error de conexión',
+        text2: 'No se pudo conectar con el servidor.',
+      });
     }
+    setLoading(false);
   };
-
 
   return (
     <View style={styles.container}>
@@ -195,33 +174,35 @@ export default function RegisterScreen() {
             </TouchableOpacity>
           </View>
           <TouchableOpacity style={styles.button} onPress={pickImage}>
-            <Text style={styles.buttonText}>Subir imagen (Extraer credencial)</Text>
+            <Text style={styles.buttonText}>📸 Subir imagen (Extraer credencial)</Text>
           </TouchableOpacity>
           {loading && <ActivityIndicator size="large" color="#ff6b00" />}
+
           <TextInput style={styles.input} placeholder="Matrícula" value={matricula} editable={false} />
           <TextInput style={styles.input} placeholder="Nombre" value={nombre} editable={false} />
-          <TextInput style={styles.input} placeholder="Correo electrónico" value={correo} onChangeText={setCorreo} />
+          <TextInput style={styles.input} placeholder="Correo" value={correo} onChangeText={setCorreo} />
+
           <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={carrera}
-              onValueChange={(value) => setCarrera(value)}
-              style={styles.picker}
-            >
+            <Picker selectedValue={carrera} onValueChange={setCarrera} style={styles.picker}>
               <Picker.Item label="Seleccione su carrera" value="" />
               <Picker.Item label="Ingeniería en Software" value="Ingeniería en Software" />
               <Picker.Item label="Administración de Empresas" value="Administración de Empresas" />
               <Picker.Item label="Arquitectura" value="Arquitectura" />
             </Picker>
           </View>
+
           <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
-          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={!matricula || !password || !correo || !carrera}>
-          <Text style={styles.buttonText}>Crear cuenta</Text>
+          <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={!matricula || !password || !correo || !carrera}>
+            <Text style={styles.buttonText}>Crear cuenta</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
+      {/* ✅ Mostrar las notificaciones estilo WhatsApp */}
+      <Toast />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
