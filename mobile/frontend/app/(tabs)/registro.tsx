@@ -58,7 +58,7 @@ export default function RegisterScreen() {
     }
   };
 
-  // 🔍 Analizar la imagen con OCR y extraer matrícula y nombre
+  // 🔍 Analizar la imagen con OCR y extraer matrícula y nombre (Corrección TypeScript)
   const analyzeImage = async (base64Image: string) => {
     setLoading(true);
     const apiKey = 'K89755268888957';
@@ -78,26 +78,35 @@ export default function RegisterScreen() {
         const extractedText = data.ParsedResults[0].ParsedText;
         console.log('📝 Texto extraído:', extractedText);
 
-        const lines = extractedText
+        const lines: string[] = extractedText
           .split(/\r?\n/)
           .map((line: string) => line.trim())
           .filter((line: string) => line !== '');
 
-        const extractedMatricula = lines.find((line: string) => /^\d{8}$/.test(line)) || '';
-        let extractedNombre = lines.find((line: string) => /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(line)) || '';
+        // 🏷️ Extraer matrícula: Primer número de exactamente 8 dígitos
+        const matricula = lines.find((line) => /^\d{8}$/.test(line)) || '';
 
-        if (extractedMatricula && extractedNombre) {
-          extractedNombre = extractedNombre
-            .replace(/\s{2,}/g, ' ')
+        // 🔎 Extraer nombre: Buscar la línea de texto más larga sin números
+        const nombre = lines
+          .filter((line) => /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(line)) // Solo letras y espacios
+          .reduce((longest: string, current: string) => (current.length > longest.length ? current : longest), '');
+
+        if (matricula && nombre) {
+          const formattedNombre = nombre
+            .replace(/\s{2,}/g, ' ') // Eliminar espacios extra
+            .trim()
             .split(/\s+/)
-            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalizar
             .join(' ');
 
-          setMatricula(extractedMatricula);
-          setNombre(extractedNombre);
+          setMatricula(matricula);
+          setNombre(formattedNombre);
+          console.log(`✅ Matrícula: ${matricula}, Nombre: ${formattedNombre}`);
         } else {
           Alert.alert('Error', 'No se pudo extraer la matrícula o el nombre correctamente.');
         }
+      } else {
+        Alert.alert('Error', 'No se pudo analizar la imagen.');
       }
     } catch (error) {
       console.error('🚨 Error en OCR:', error);
@@ -105,6 +114,7 @@ export default function RegisterScreen() {
     }
     setLoading(false);
   };
+
 
   // 🔹 Registrar usuario (sin login automático)
   // 🔹 Registrar usuario

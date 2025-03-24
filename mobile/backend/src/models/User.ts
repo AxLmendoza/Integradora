@@ -10,19 +10,22 @@ export interface Usuario {
   correo: string;
   carrera: string;
 }
-
 export const getUserByMatricula = async (matricula: string): Promise<Usuario | null> => {
   try {
     const [rows]: [RowDataPacket[], any] = await pool.query(
-      "SELECT * FROM usuarios WHERE matricula = ?",
+      "SELECT id, matricula, nombre, carrera, password FROM usuarios WHERE matricula = ?",
       [matricula]
     );
+
+    console.log("🛢️ Datos obtenidos de la BD:", rows); // 🔍 Debug
+
     return rows.length ? (rows[0] as Usuario) : null;
   } catch (error) {
     console.error("❌ Error en getUserByMatricula:", error);
     throw new Error("Error al buscar usuario.");
   }
 };
+
 
 export const createUser = async (user: Usuario): Promise<number> => {
   try {
@@ -49,16 +52,12 @@ export const verifyUser = async (matricula: string, password: string): Promise<U
 
     console.log("🔍 Usuario encontrado:", user);
 
-    console.log("🔑 Password almacenado en BD:", user.password);
-    console.log("🔑 Password ingresado:", password);
-
     const match = await bcrypt.compare(password, user.password);
     console.log("✅ ¿Coincide la contraseña?:", match);
 
-    return match ? user : null;
+    return match ? user : null; // 🔹 Asegurar que devuelve `user`
   } catch (error) {
     console.error("❌ Error en verifyUser:", error);
     throw new Error("Error al verificar usuario.");
   }
 };
-

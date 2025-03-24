@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
-import { verifyUser, createUser, getUserByMatricula } from "../models/User"; 
+import { verifyUser, createUser, getUserByMatricula } from "../models/User";
 import { generateToken } from "../middlewares/authMiddleware";
-import pool from "../config/db"; 
+import pool from "../config/db";
 
+/*===========================
+  Inicio de sesion de Usuario
+  ===========================*/
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { matricula, password } = req.body;
@@ -19,14 +22,35 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 
     const token = generateToken(usuario.id);
-    res.status(200).json({ message: "Login exitoso", token });
+
+    // Verificar si la matrícula es la del administrador
+    const ADMIN_MATRICULA = process.env.ADMIN_MATRICULA || "202524"; // Ajusta según tu entorno
+    const isAdmin = usuario.matricula === ADMIN_MATRICULA;
+
+    console.log("🛠️ isAdmin:", isAdmin); // Agrega este log para verificar
+
+    res.status(200).json({
+      message: "Login exitoso",
+      token,
+      matricula: usuario.matricula,
+      nombre: usuario.nombre,
+      carrera: usuario.carrera,
+      isAdmin, // ✅ Asegúrate de enviar esto correctamente
+    });
   } catch (error) {
     console.error("❌ Error en loginUser:", error);
     res.status(500).json({ error: "Error en el servidor, intenta más tarde." });
   }
 };
 
-export const registerUser = async (req: Request, res: Response): Promise<void> => {
+/*===================
+  Registro de Usuario
+  ===================*/
+
+export const registerUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { matricula, nombre, correo, carrera, password } = req.body;
 
@@ -35,15 +59,26 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const userId = await createUser({ matricula, nombre, correo, carrera, password });
-    res.status(201).json({ message: "Usuario registrado correctamente", userId });
+    const userId = await createUser({
+      matricula,
+      nombre,
+      correo,
+      carrera,
+      password,
+    });
+    res
+      .status(201)
+      .json({ message: "Usuario registrado correctamente", userId });
   } catch (error) {
     console.error("❌ Error en registerUser:", error);
     res.status(500).json({ error: "Error en el servidor." });
   }
 };
 
-export const updateName = async (req: Request, res: Response): Promise<void> => {
+export const updateName = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { matricula, nombre } = req.body;
 
@@ -59,7 +94,10 @@ export const updateName = async (req: Request, res: Response): Promise<void> => 
     }
 
     if (user.nombre !== nombre) {
-      await pool.query("UPDATE usuarios SET nombre = ? WHERE matricula = ?", [nombre, matricula]);
+      await pool.query("UPDATE usuarios SET nombre = ? WHERE matricula = ?", [
+        nombre,
+        matricula,
+      ]);
       res.json({ message: "Nombre actualizado correctamente." });
     } else {
       res.json({ message: "El nombre ya estaba actualizado." });
@@ -69,6 +107,3 @@ export const updateName = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ error: "Error en el servidor." });
   }
 };
-
-// ❌ ELIMINA ESTO (NO ES NECESARIO EXPORTAR OTRA VEZ)
-// export { loginUser, registerUser, updateName };

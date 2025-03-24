@@ -42,7 +42,7 @@ export default function BuscarPre() {
 
         {/* Encabezado con iconos */}
         <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.push('/grupos')}>
+                <TouchableOpacity onPress={() => router.push('/ad_principal')}>
                   <Ionicons name="arrow-back" size={30} color="#000" />
                 </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>

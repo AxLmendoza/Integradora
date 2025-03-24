@@ -63,7 +63,7 @@ export default function HomeScreen() {
 
         {/* Imagen de Grupos */}
         <View style={styles.contentContainer}>
-          <TouchableOpacity onPress={() => router.push('/ad_grupos')}>
+          <TouchableOpacity onPress={() => router.push('/ad_grupos_mios')}>
             <Image
               source={require('@/assets/images/grupos_icon.png')}
               style={styles.groupsImage}

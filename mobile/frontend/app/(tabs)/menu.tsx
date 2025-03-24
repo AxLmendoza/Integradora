@@ -69,14 +69,6 @@ export default function MenuScreen() {
             <Ionicons name="trash" size={26} color="#fff" />
             <Text style={styles.menuButtonText}>Eliminar cuenta</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => router.push('/ad_principal')}
-          >
-            <Ionicons name="hammer" size={26} color="#fff" />
-            <Text style={styles.menuButtonText}>Administrador</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </ImageBackground>

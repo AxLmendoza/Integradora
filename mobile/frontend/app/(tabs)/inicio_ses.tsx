@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message'; // ✅ Importar Toast
+
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.94:3001/api/auth';
 
@@ -20,33 +22,50 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Función para iniciar sesión
   const handleLogin = async () => {
     if (!matricula || !password) {
-      Alert.alert('Error', 'Debe ingresar matrícula y contraseña.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Todos los campos son obligatorios.',
+      });
       return;
     }
-  
+
     setLoading(true);
     try {
       console.log('📤 Enviando login con:', { matricula, password });
-  
+
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matricula, password }),
       });
-  
+
       const data = await response.json();
-      console.log('📥 Respuesta login:', data);
-  
+      console.log('📥 Respuesta login completa:', data);
+
       if (response.ok) {
-        await AsyncStorage.setItem('token', data.token);
-        if (data.carrera) {
-          await AsyncStorage.setItem('carrera', data.carrera);
+        if (data.matricula) {
+          await AsyncStorage.setItem('matricula', data.matricula);
+        } else {
+          console.warn("⚠️ Matricula no definida en la respuesta del servidor.");
         }
-        Alert.alert('Bienvenido', 'Inicio de sesión exitoso.');
-        router.push('/grupos');
+
+        await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem('nombre', data.nombre);
+        await AsyncStorage.setItem('carrera', data.carrera);
+
+        Alert.alert('Bienvenido', `Hola, ${data.nombre}`);
+
+        // **Asegúrate de que data.isAdmin está correctamente procesado**
+        if (data.isAdmin === true) {
+          console.log("🛠️ Usuario es administrador, redirigiendo...");
+          router.push('/ad_principal'); // 🔹 Redirige a admin
+        } else {
+          console.log("👤 Usuario normal, redirigiendo...");
+          router.push('/grupos'); // 🔹 Redirige a grupos normales
+        }
       } else {
         console.log("❌ Error en login:", data.error);
         Alert.alert('Error', data.error || 'Credenciales incorrectas.');
@@ -57,7 +76,6 @@ export default function LoginScreen() {
     }
     setLoading(false);
   };
-  
 
   return (
     <View style={styles.container}>
@@ -95,6 +113,8 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </ImageBackground>
+      {/* ✅ Mostrar las notificaciones estilo WhatsApp */}
+      <Toast />
     </View>
   );
 }

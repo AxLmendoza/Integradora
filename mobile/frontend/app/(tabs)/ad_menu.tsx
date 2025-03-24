@@ -32,7 +32,7 @@ export default function MenuScreen() {
         <View style={styles.menuItems}>
           <TouchableOpacity
             style={styles.menuButton}
-            onPress={() => router.push('/(tabs)/usuario')}
+            onPress={() => router.push('/(tabs)/ad_usuario')}
           >
             <Ionicons name="person" size={26} color="#000" />
             <Text style={styles.menuButtonText}>Cuenta</Text>
@@ -40,7 +40,7 @@ export default function MenuScreen() {
 
           <TouchableOpacity
             style={styles.menuButton}
-            onPress={() => router.push('/(tabs)/grupos')}
+            onPress={() => router.push('/(tabs)/ad_principal')}
           >
             <Ionicons name="shield-checkmark" size={26} color="#000" />
             <Text style={styles.menuButtonText}>Privacidad</Text>
@@ -48,7 +48,7 @@ export default function MenuScreen() {
 
           <TouchableOpacity
             style={styles.menuButton}
-            onPress={() => router.push('/(tabs)/grupos')}
+            onPress={() => router.push('/(tabs)/ad_principal')}
           >
             <Ionicons name="book" size={26} color="#000" />
             <Text style={styles.menuButtonText}>Publicaciones</Text>
@@ -68,14 +68,6 @@ export default function MenuScreen() {
           >
             <Ionicons name="trash" size={26} color="#000" />
             <Text style={styles.menuButtonText}>Eliminar cuenta</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => router.push('/grupos')}
-          >
-            <Ionicons name="hammer" size={26} color="#000" />
-            <Text style={styles.menuButtonText}>Usuario</Text>
           </TouchableOpacity>
         </View>
       </View>
