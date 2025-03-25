@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message'; // ✅ Importar Toast
 
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.94:3001/api/auth';
+const API_URL = process.env.API_URL || 'http://192.168.1.94:3001/api/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -162,3 +162,120 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+
+
+/*import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Image,
+  ImageBackground,
+  TouchableOpacity,
+  Alert
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
+import { Ionicons } from '@expo/vector-icons';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.94:3001/api/auth';
+
+export default function LoginScreen() {
+  const router = useRouter();
+  const [matricula, setMatricula] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const handleLogin = async () => {
+    if (!matricula || !password) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Todos los campos son obligatorios.',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matricula, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem('nombre', data.nombre);
+        await AsyncStorage.setItem('carrera', data.carrera);
+        Alert.alert('Bienvenido', `Hola, ${data.nombre}`);
+        router.push(data.isAdmin ? '/ad_principal' : '/grupos');
+      } else {
+        Alert.alert('Error', data.error || 'Credenciales incorrectas.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <View style={styles.container}>
+      <ImageBackground source={require('@/assets/images/inicio_ses2.jpeg')} style={styles.backgroundImage}>
+        <View style={styles.overlay} />
+        <View style={styles.contentContainer}>
+          <Image source={require('@/assets/images/ardilla.png')} style={styles.logo} resizeMode="contain" />
+          <TextInput
+            style={styles.input}
+            placeholder="Matrícula"
+            value={matricula}
+            onChangeText={setMatricula}
+            keyboardType="numeric"
+          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.inputPassword}
+              placeholder="Contraseña"
+              secureTextEntry={!passwordVisible}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+              <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="gray" />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+            <Text style={styles.buttonText}>{loading ? 'Cargando...' : 'Iniciar Sesión'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
+      <Toast />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  backgroundImage: { flex: 1, justifyContent: 'center' },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.1)' },
+  contentContainer: { alignItems: 'center', padding: 20 },
+  logo: { width: 450, height: 230, marginBottom: 20 },
+  input: { width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: 10, borderRadius: 10, marginBottom: 10 },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  inputPassword: { flex: 1 },
+  button: { backgroundColor: '#ff6b00', padding: 12, borderRadius: 25, alignItems: 'center' },
+  buttonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+}); */
