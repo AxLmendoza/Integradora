@@ -1,3 +1,6 @@
+/* src/routes/auth.ts */
+
+
 import { Router } from "express";
 import { registerUser, loginUser, updateName } from "../controllers/authController";
 import { validateLogin, validateRegister } from "../validators/authValidator";

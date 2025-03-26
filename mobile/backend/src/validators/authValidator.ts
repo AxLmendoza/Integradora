@@ -1,3 +1,5 @@
+/* src/validators/authValidators.ts */
+
 import { Request, Response, NextFunction } from 'express';
 
 // Validación para el login

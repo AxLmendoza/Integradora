@@ -49,7 +49,7 @@ export default function CompartirInformacionScreen() {
     console.log("FormData generado:", formData);
 
     try {
-      const resp = await fetch("http://192.168.1.94:3001/api/files/subir", {
+      const resp = await fetch("http://10.1.1.118:3001/api/files/subir", {
         method: "POST",
         body: formData,
       });
