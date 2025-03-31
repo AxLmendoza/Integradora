@@ -1,4 +1,4 @@
-/* src/models/User.ts (Actualización para usar passwordUtils) */
+/* src/models/User.ts */
 
 import { RowDataPacket } from "mysql2";
 import pool from "../config/db";

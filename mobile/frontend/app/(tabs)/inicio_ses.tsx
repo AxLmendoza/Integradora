@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message'; // ✅ Importar Toast
 
 
-const API_URL = process.env.API_URL || 'http://192.168.1.94:3001/api/auth';
+const API_URL = process.env.API_URL || 'http://10.1.1.106:3001/api/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
