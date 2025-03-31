@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message'; // ✅ Importar Toast
 
-const API_URL = process.env.API_URL || 'http://10.1.1.106:3001/api/auth';
+const API_URL = process.env.API_URL || 'http://10.1.1.119:3001/api/auth';
 
 export default function RegisterScreen() {
   const router = useRouter();

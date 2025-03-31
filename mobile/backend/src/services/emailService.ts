@@ -1,31 +1,27 @@
-import sgMail from "@sendgrid/mail";
+import sgMail from '@sendgrid/mail';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY as string);
 
-interface EmailOptions {
-    to: string;
-    subject: string;
-    html: string;
-}
-
-export const sendEmail = async ({ to, subject, html }: EmailOptions) => {
+class EmailService {
+  static async sendEmail(subject: string, text: string, html: string): Promise<void> {
     const msg = {
-        to,
-        from: "tuemail@tudominio.com", // 🔹 Usa un email verificado en SendGrid
-        subject,
-        content: [
-            {
-                type: "text/html",
-                value: html,
-            },
-        ],
+      to: 'test@example.com',
+      from: 'veratrinidadesteban@gmail.com.com', // Cambia esto a tu remitente verificado
+      subject,
+      text,
+      html,
     };
 
     try {
-        await sgMail.send(msg as any); // ✅ Agregar `as any` si TypeScript sigue quejándose
-        console.log("Correo enviado con éxito.");
+      await sgMail.send(msg);
+      console.log('Email sent');
     } catch (error) {
-        console.error("Error enviando email:", error);
-        throw new Error("No se pudo enviar el email.");
+      console.error(error);
     }
-};
+  }
+}
+
+export default EmailService;

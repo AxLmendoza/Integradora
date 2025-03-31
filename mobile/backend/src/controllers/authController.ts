@@ -1,7 +1,6 @@
 /* src/controllers/authController.ts */
 
 import { Request, Response } from "express";
-import { sendEmail } from "../services/emailService";
 import { verifyUser, createUser, getUserByMatricula } from "../models/User";
 import { generateToken } from "../middlewares/authMiddleware";
 import pool from "../config/db";
