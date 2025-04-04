@@ -19,7 +19,7 @@ export default function HomeScreen() {
       onPress={() => router.push('/home')}
     >
       <ImageBackground
-        source={require('@/assets/images/fondo_principal.jpeg')}
+        source={require('@/assets/images/fondo_principal.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >

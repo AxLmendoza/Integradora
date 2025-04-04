@@ -16,7 +16,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('@/assets/images/fondo_inicio.jpeg')}
+        source={require('@/assets/images/fondo_inicio.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >

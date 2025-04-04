@@ -57,3 +57,37 @@ export const verifyUser = async (matricula: string, password: string): Promise<U
     throw new Error("Error al verificar usuario.");
   }
 };
+
+
+export const saveVerificationCode = async (email: string, code: number) => {
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + 10); // OTP válido por 10 minutos
+
+  try {
+    const [result] = await pool.query(
+      "UPDATE usuarios SET otp = ?, otp_expires = ? WHERE correo = ?",
+      [code, expiresAt, email]
+    );
+
+    console.log("📌 Resultado de la actualización:", result);
+  } catch (error) {
+    console.error("❌ Error en saveVerificationCode:", error);
+    throw new Error("Error al guardar el código de verificación.");
+  }
+};
+
+
+export const saveResetToken = async (email: string, token: string) => {
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 1); // Expira en 1 hora
+
+  try {
+    await pool.query(
+      "UPDATE usuarios SET otp = ?, otp_expires = ? WHERE correo = ?",
+      [token, expiresAt, email]
+    );
+  } catch (error) {
+    console.error("❌ Error en saveResetToken:", error);
+    throw new Error("Error al guardar el token de recuperación.");
+  }
+};

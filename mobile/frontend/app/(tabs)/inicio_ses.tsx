@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,11 +10,11 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Toast from 'react-native-toast-message'; // ✅ Importar Toast
+import Toast from 'react-native-toast-message';
 
-
-const API_URL = process.env.API_URL || 'http://10.1.1.119:3001/api/auth';
+const API_URL = 'http://192.168.0.101:3001/api/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -22,15 +22,51 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!matricula || !password) {
+  const validarDatos = () => {
+    const mat = matricula.trim();
+    const pass = password.trim();
+
+    if (!mat || !pass) {
       Toast.show({
         type: 'error',
         text1: 'Error',
         text2: 'Todos los campos son obligatorios.',
       });
-      return;
+      return false;
     }
+
+    if (!/^\d+$/.test(mat)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'La matrícula debe contener solo números.',
+      });
+      return false;
+    }
+
+    if (pass.length < 6) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'La contraseña debe tener al menos 6 caracteres.',
+      });
+      return false;
+    }
+
+    if (/['"<>]/.test(pass)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'La contraseña contiene caracteres no permitidos.',
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleLogin = async () => {
+    if (!validarDatos()) return;
 
     setLoading(true);
     try {
@@ -39,36 +75,48 @@ export default function LoginScreen() {
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula, password }),
+        body: JSON.stringify({ matricula: matricula.trim(), password: password.trim() }),
       });
 
       const data = await response.json();
       console.log('📥 Respuesta login completa:', data);
 
       if (response.ok) {
-        if (data.matricula) {
-          await AsyncStorage.setItem('matricula', data.matricula);
-        } else {
-          console.warn("⚠️ Matricula no definida en la respuesta del servidor.");
-        }
 
+        console.log('Toast se está mostrando');
+        // ✅ Toast de éxito
+        Toast.show({
+          type: 'success',
+          text1: 'Inicio de sesión exitoso',
+          text2: `Bienvenido, ${data.nombre}!`,
+        });
+
+
+        await AsyncStorage.setItem('matricula', data.matricula);
         await AsyncStorage.setItem('token', data.token);
         await AsyncStorage.setItem('nombre', data.nombre);
         await AsyncStorage.setItem('carrera', data.carrera);
 
-        Alert.alert('Bienvenido', `Hola, ${data.nombre}`);
 
-        // **Asegúrate de que data.isAdmin está correctamente procesado**
-        if (data.isAdmin === true) {
-          console.log("🛠️ Usuario es administrador, redirigiendo...");
-          router.push('/ad_principal'); // 🔹 Redirige a admin
-        } else {
-          console.log("👤 Usuario normal, redirigiendo...");
-          router.push('/grupos'); // 🔹 Redirige a grupos normales
-        }
+        // Luego realiza la navegación
+        setTimeout(() => {
+          if (data.isAdmin) {
+            router.push('/ad_principal');
+          } else {
+            router.push('/grupos');
+          }
+        }, 2000); // Espera 2 segundos para que el Toast se vea antes de cambiar de pantalla
+        
+        // Limpiar campos
+        setMatricula('');
+        setPassword('');
+
       } else {
-        console.log("❌ Error en login:", data.error);
-        Alert.alert('Error', data.error || 'Credenciales incorrectas.');
+        Toast.show({
+          type: 'error',
+          text1: 'Inicio de sesión fallido',
+          text2: 'Verifica tu matrícula y contraseña e intenta de nuevo.',
+        });
       }
     } catch (error) {
       console.error('🚨 Error en login:', error);
@@ -77,9 +125,17 @@ export default function LoginScreen() {
     setLoading(false);
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      setMatricula('');
+      setPassword('');
+    }, [])
+  );
+
+
   return (
     <View style={styles.container}>
-      <ImageBackground source={require('@/assets/images/inicio_ses2.jpeg')} style={styles.backgroundImage}>
+      <ImageBackground source={require('@/assets/images/inicio_ses2.jpg')} style={styles.backgroundImage}>
         <View style={styles.overlay} />
         <View style={styles.contentContainer}>
           <Image source={require('@/assets/images/ardilla.png')} style={styles.logo} resizeMode="contain" />

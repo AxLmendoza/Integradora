@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   TextInput,
+  Image,
   ImageBackground,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
-import Toast from 'react-native-toast-message'; // ✅ Importar Toast
+import Toast from 'react-native-toast-message';
 
-const API_URL = process.env.API_URL || 'http://10.1.1.119:3001/api/auth';
+const API_URL = 'http://192.168.0.101:3001/api/auth';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -27,23 +28,38 @@ export default function RegisterScreen() {
   const [carrera, setCarrera] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // 📌 Solicita permisos de galería al iniciar
+  // Limpieza de estados
+  useFocusEffect(
+    useCallback(() => {
+      setImageUri(null);
+      setMatricula('');
+      setNombre('');
+      setCorreo('');
+      setPassword('');
+      setCarrera('');
+      return () => {
+        setImageUri(null);
+        setMatricula('');
+        setNombre('');
+        setCorreo('');
+        setPassword('');
+        setCarrera('');
+      };
+    }, [])
+  );
+
+  // Solicitar permisos
   useEffect(() => {
     (async () => {
-      try {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Permiso denegado', 'Ve a configuración para permitir el acceso a la galería.');
-        }
-      } catch (error) {
-        console.error('Error al solicitar permisos:', error);
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu galería para subir tu credencial.');
       }
     })();
   }, []);
 
-  // 📸 Seleccionar imagen y extraer datos con OCR
+  // Seleccionar imagen
   const pickImage = async () => {
-    console.log('📸 Seleccionando imagen...');
     const pickerResult = await ImagePicker.launchImageLibraryAsync({
       base64: true,
       quality: 0.7,
@@ -53,12 +69,11 @@ export default function RegisterScreen() {
     if (!pickerResult.canceled && pickerResult.assets?.length) {
       const asset = pickerResult.assets[0];
       setImageUri(asset.uri);
-      console.log('✅ Imagen seleccionada:', asset.uri);
       await analyzeImage(asset.base64!);
     }
   };
 
-  // 🔍 Analizar la imagen con OCR y extraer matrícula y nombre (Corrección TypeScript)
+  // Analizar imagen con OCR
   const analyzeImage = async (base64Image: string) => {
     setLoading(true);
     const apiKey = 'K89755268888957';
@@ -69,69 +84,124 @@ export default function RegisterScreen() {
     formData.append('language', 'spa');
 
     try {
-      console.log('📤 Enviando imagen a OCR...');
       const response = await fetch(ocrUrl, { method: 'POST', body: formData });
       const data = await response.json();
-      console.log('📥 Respuesta OCR:', data);
 
       if (data.ParsedResults?.length > 0) {
         const extractedText = data.ParsedResults[0].ParsedText;
-        console.log('📝 Texto extraído:', extractedText);
-
         const lines: string[] = extractedText
           .split(/\r?\n/)
           .map((line: string) => line.trim())
           .filter((line: string) => line !== '');
 
-        // 🏷️ Extraer matrícula: Primer número de exactamente 8 dígitos
+        // Extraer matrícula (solo lectura)
         const matricula = lines.find((line) => /^\d{8}$/.test(line)) || '';
-
-        // 🔎 Extraer nombre: Buscar la línea de texto más larga sin números
+        
+        // Extraer nombre (editable)
         const nombre = lines
-          .filter((line) => /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(line)) // Solo letras y espacios
-          .reduce((longest: string, current: string) => (current.length > longest.length ? current : longest), '');
+          .filter((line) => /^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(line))
+          .reduce((longest: string, current: string) => 
+            (current.length > longest.length ? current : longest), '');
 
         if (matricula && nombre) {
-          const formattedNombre = nombre
-            .replace(/\s{2,}/g, ' ') // Eliminar espacios extra
-            .trim()
-            .split(/\s+/)
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalizar
-            .join(' ');
+          const cleanedNombre = nombre
+            .replace(/\s{2,}/g, ' ')
+            .trim();
 
           setMatricula(matricula);
-          setNombre(formattedNombre);
-          console.log(`✅ Matrícula: ${matricula}, Nombre: ${formattedNombre}`);
+          setNombre(cleanedNombre);
         } else {
-          Alert.alert('Error', 'No se pudo extraer la matrícula o el nombre correctamente.');
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'No se pudo extraer la información de la credencial.',
+          });
         }
-      } else {
-        Alert.alert('Error', 'No se pudo analizar la imagen.');
       }
     } catch (error) {
-      console.error('🚨 Error en OCR:', error);
-      Alert.alert('Error', 'Hubo un problema al procesar la imagen.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'No se pudo procesar la imagen.',
+      });
     }
     setLoading(false);
   };
 
-
-  // 🔹 Registrar usuario (sin login automático)
-  // 🔹 Registrar usuario
-  const handleRegister = async () => {
-    if (!matricula || !nombre || !correo || !carrera || !password) {
+  // Validar datos
+  const validarDatos = () => {
+    if (!matricula || !nombre || !correo || !password || !carrera) {
       Toast.show({
         type: 'error',
         text1: 'Error',
         text2: 'Todos los campos son obligatorios.',
       });
-      return;
+      return false;
     }
+
+    if (!/^\d{8}$/.test(matricula)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'La matrícula debe tener 8 dígitos.',
+      });
+      return false;
+    }
+
+    if (!/^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(nombre)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'El nombre solo puede contener letras y espacios.',
+      });
+      return false;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Ingresa un correo electrónico válido.',
+      });
+      return false;
+    }
+
+    if (password.length < 6) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'La contraseña debe tener al menos 6 caracteres.',
+      });
+      return false;
+    }
+
+    if (/['"<>]/.test(password)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'La contraseña contiene caracteres no permitidos.',
+      });
+      return false;
+    }
+
+    if (!imageUri) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Debes subir una foto de tu credencial.',
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  // Registrar usuario
+  const handleRegister = async () => {
+    if (!validarDatos()) return;
 
     setLoading(true);
     try {
-      console.log('📤 Enviando registro con:', { matricula, nombre, correo, carrera, password });
-
       const response = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,97 +209,244 @@ export default function RegisterScreen() {
       });
 
       const data = await response.json();
-      console.log('📥 Respuesta registro:', data);
 
       if (response.ok) {
         Toast.show({
           type: 'success',
           text1: 'Registro exitoso',
-          text2: 'Tu cuenta ha sido creada correctamente.',
+          text2: 'Te hemos enviado un correo de verificación.',
         });
 
         setTimeout(() => {
-          router.push('/inicio_ses'); // 🔹 Redirige manualmente al login
+          router.replace(`/VerifyOtpScreen?correo=${encodeURIComponent(correo)}`);
         }, 2000);
       } else {
         Toast.show({
           type: 'error',
-          text1: 'Error en registro',
-          text2: data.error || 'No se pudo registrar el usuario.',
+          text1: 'Error',
+          text2: data.error || 'No se pudo completar el registro.',
         });
       }
     } catch (error) {
-      console.error('🚨 Error en registro:', error);
       Toast.show({
         type: 'error',
-        text1: 'Error de conexión',
+        text1: 'Error',
         text2: 'No se pudo conectar con el servidor.',
       });
     }
     setLoading(false);
   };
 
+  // Estilos dinámicos
+  const readOnlyInputStyles = StyleSheet.create({
+    container: {
+      width: '100%',
+      backgroundColor: 'rgba(255, 255, 255, 0.5)',
+      padding: 15,
+      borderRadius: 10,
+      marginBottom: 15,
+      justifyContent: 'center',
+      height: 50,
+    },
+    text: {
+      fontSize: 16,
+      color: matricula ? '#000' : '#666',
+    },
+  });
+
   return (
     <View style={styles.container}>
-      <ImageBackground source={require('@/assets/images/fondo_registro.jpeg')} style={styles.backgroundImage}>
+      <ImageBackground source={require('@/assets/images/inicio_ses2.jpg')} style={styles.backgroundImage}>
         <View style={styles.overlay} />
         <View style={styles.contentContainer}>
           <Image source={require('@/assets/images/ardilla.png')} style={styles.logo} resizeMode="contain" />
+          
           <View style={styles.switchContainer}>
             <TouchableOpacity style={styles.switchButtonActive}>
               <Text style={styles.switchTextActive}>Regístrate</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.switchButtonInactive} onPress={() => router.push('/inicio_ses')}>
+            <TouchableOpacity 
+              style={styles.switchButtonInactive} 
+              onPress={() => router.push('/inicio_ses')}
+            >
               <Text style={styles.switchTextInactive}>Inicia sesión</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.button} onPress={pickImage}>
-            <Text style={styles.buttonText}>📸 Subir imagen (Extraer credencial)</Text>
+          
+          <Text style={styles.title}>Crear Cuenta</Text>
+          
+          <TouchableOpacity 
+            style={styles.imageButton}
+            onPress={pickImage}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>
+              {imageUri ? '✓ Credencial seleccionada' : '📸 Subir credencial'}
+            </Text>
           </TouchableOpacity>
-          {loading && <ActivityIndicator size="large" color="#ff6b00" />}
-
-          <TextInput style={styles.input} placeholder="Matrícula" value={matricula} editable={false} />
-          <TextInput style={styles.input} placeholder="Nombre" value={nombre} editable={false} />
-          <TextInput style={styles.input} placeholder="Correo" value={correo} onChangeText={setCorreo} />
-
+          
+          {/* Campo de matrícula (NO editable) */}
+          <View style={readOnlyInputStyles.container}>
+            <Text style={readOnlyInputStyles.text}>
+              {matricula || 'Matrícula'}
+            </Text>
+          </View>
+          
+          {/* Campo de nombre (editable) */}
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre completo"
+            value={nombre}
+            onChangeText={(text) => {
+              const sanitizedText = text.replace(/[^a-zA-ZÁÉÍÓÚÑáéíóúñ\s]/g, '');
+              setNombre(sanitizedText);
+            }}
+            editable={!loading}
+          />
+          
+          <TextInput
+            style={styles.input}
+            placeholder="Correo electrónico"
+            value={correo}
+            onChangeText={setCorreo}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+          />
+          
           <View style={styles.pickerContainer}>
-            <Picker selectedValue={carrera} onValueChange={setCarrera} style={styles.picker}>
-              <Picker.Item label="Seleccione su carrera" value="" />
+            <Picker
+              selectedValue={carrera}
+              onValueChange={setCarrera}
+              style={styles.picker}
+              enabled={!loading}
+            >
+              <Picker.Item label="Selecciona tu carrera" value="" />
               <Picker.Item label="Ingeniería en Software" value="Ingeniería en Software" />
               <Picker.Item label="Administración de Empresas" value="Administración de Empresas" />
               <Picker.Item label="Arquitectura" value="Arquitectura" />
             </Picker>
           </View>
-
-          <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
-          <TouchableOpacity style={styles.button} onPress={handleRegister} disabled={!matricula || !password || !correo || !carrera}>
-            <Text style={styles.buttonText}>Crear cuenta</Text>
+          
+          <TextInput
+            style={styles.input}
+            placeholder="Contraseña"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            editable={!loading}
+          />
+          
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Registrarse</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ImageBackground>
-      {/* ✅ Mostrar las notificaciones estilo WhatsApp */}
       <Toast />
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  backgroundImage: { flex: 1, justifyContent: 'center' },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)' },
-  contentContainer: { alignItems: 'center', padding: 20 },
-  switchContainer: { flexDirection: 'row', marginBottom: 20, backgroundColor: 'rgba(255, 255, 255, 0.7)', borderRadius: 25 },
-  switchButtonInactive: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 25 },
-  switchButtonActive: { backgroundColor: '#ff6b00', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 25 },
-  switchTextInactive: { color: '#666', fontSize: 16 },
-  switchTextActive: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  logo: { width: 150, height: 150, marginBottom: 20 },
-  input: { width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: 10, borderRadius: 10, marginBottom: 10 },
-  pickerContainer: { width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: 10, marginBottom: 10 },
-  picker: { width: '100%', height: 50, padding: 10 },
-  button: { backgroundColor: '#ff6b00', padding: 12, borderRadius: 25, alignItems: 'center', marginBottom: 20 }, // Añado un margen inferior
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  linkText: { color: '#ff6b00', marginTop: 10, fontWeight: 'bold' },
-  image: { width: 200, height: 200, marginBottom: 20 }, // Agrega esta línea
+  container: { 
+    flex: 1 
+  },
+  backgroundImage: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.1)'
+  },
+  contentContainer: { 
+    alignItems: 'center', 
+    padding: 20 
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 25
+  },
+  switchButtonInactive: { 
+    paddingVertical: 10, 
+    paddingHorizontal: 20, 
+    borderRadius: 25 
+  },
+  switchButtonActive: { 
+    backgroundColor: '#ff6b00', 
+    paddingVertical: 10, 
+    paddingHorizontal: 20, 
+    borderRadius: 25 
+  },
+  switchTextInactive: { 
+    color: '#666', 
+    fontSize: 16 
+  },
+  switchTextActive: { 
+    color: '#fff', 
+    fontSize: 16, 
+    fontWeight: 'bold' 
+  },
+  logo: { 
+    width: 450, 
+    height: 230, 
+    marginBottom: 20 
+  },
+  title: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center'
+  },
+  input: { 
+    width: '100%', 
+    backgroundColor: 'rgba(255, 255, 255, 0.8)', 
+    padding: 15,
+    borderRadius: 10, 
+    marginBottom: 15,
+    fontSize: 16
+  },
+  pickerContainer: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 10,
+    marginBottom: 15,
+    overflow: 'hidden'
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+  },
+  imageButton: {
+    backgroundColor: 'rgba(255, 107, 0, 0.8)',
+    padding: 15,
+    borderRadius: 25,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15
+  },
+  button: { 
+    backgroundColor: '#ff6b00', 
+    padding: 15, 
+    borderRadius: 25, 
+    width: '100%',
+    alignItems: 'center' 
+  },
+  buttonText: { 
+    color: '#fff', 
+    fontSize: 18, 
+    fontWeight: '600' 
+  },
 });

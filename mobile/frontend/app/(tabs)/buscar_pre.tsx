@@ -1,35 +1,81 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, Modal, ImageBackground, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, Modal, ImageBackground, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-const preguntasEjemplo = [
-  { id: '1', titulo: '¿Cómo funciona React Native?', autor: 'Alejandra M', avatar: require('../../assets/images/user.png') },
-  { id: '2', titulo: '¿Qué es Expo Router?', autor: 'Memo M', avatar: require('../../assets/images/user.png') },
-  { id: '3', titulo: '¿Cómo manejar estado en React Native?', autor: 'Karla Luna', avatar: require('../../assets/images/user.png') },
-];
+// URL de la API: Asegúrate de que coincide con la dirección de tu backend
+const API_URL = "http://192.168.1.100:3001/api/preguntas";
 
 export default function BuscarPre() {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [newQuestion, setNewQuestion] = useState('');
-  const [questions, setQuestions] = useState(preguntasEjemplo);
+  const [questions, setQuestions] = useState([]);
 
-  // Filtra preguntas por el texto de búsqueda
-  const filteredQuestions = questions.filter((item) =>
-    item.titulo.toLowerCase().includes(query.toLowerCase())
-  );
+  // Obtener preguntas del backend al cargar la pantalla
+  useEffect(() => {
+    fetch(API_URL)
+      .then((res) => {
+        console.log("Estado de la respuesta:", res.status);
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Datos recibidos:", data);
+        if (Array.isArray(data)) {
+          setQuestions(data);
+        } else {
+          console.error("La respuesta no es un array", data);
+        }
+      })
+      .catch((error) => console.error("❌ Error cargando preguntas:", error));
+  }, []);
 
-  // Agregar una nueva pregunta
-  const addQuestion = () => {
-    if (newQuestion.trim() !== '') {
-      const newQ = { id: Date.now().toString(), titulo: newQuestion, autor: 'Usuario Anónimo', avatar: require('../../assets/images/user.png') };
-      setQuestions([newQ, ...questions]);
-      setNewQuestion('');
-      setModalVisible(false);
+
+  
+
+  // Filtrar preguntas por el texto de búsqueda
+  const filteredQuestions = Array.isArray(questions)
+    ? questions.filter((item) =>
+        // Usamos item.pregunta, ya que el backend devuelve esa propiedad
+        item.pregunta.toLowerCase().includes(query.toLowerCase())
+      )
+    : [];
+
+  // Agregar una nueva pregunta en la API y actualizar la lista
+  const addQuestion = async () => {
+    if (newQuestion.trim() === '') {
+      return Alert.alert("Error", "La pregunta no puede estar vacía");
+    }
+  
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pregunta: newQuestion,      // Pregunta que se está agregando
+          autor: "Usuario Anónimo",  // Autor de la pregunta
+          // Si es necesario enviar más datos, agréguelos aquí.
+        }),
+      });
+  
+      // Comprobar si la respuesta es exitosa
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error al publicar la pregunta:", errorData);
+        throw new Error(errorData.error || "Error desconocido");
+      }
+  
+      const newQ = await response.json();
+      setQuestions([newQ, ...questions]); // Actualiza la lista con la nueva pregunta
+      setNewQuestion("");  // Limpiar el campo de la nueva pregunta
+      setModalVisible(false);  // Cerrar el modal
+    } catch (error) {
+      console.error("❌ Error al agregar pregunta:", error);
+      Alert.alert("Error", error.message || "No se pudo publicar la pregunta");
     }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -68,17 +114,21 @@ export default function BuscarPre() {
         {/* Lista de preguntas */}
         <FlatList
           data={filteredQuestions}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()} 
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.item}
               onPress={() => router.push(`/ver_pregun?id=${item.id}`)}
-            >
+              >
               <View style={styles.userContainer}>
-                <Image source={item.avatar} style={styles.userAvatar} />
+                <Image
+                  source={require('@/assets/images/user.png')}
+                  style={styles.userAvatar}
+                />
                 <Text style={styles.autor}>{item.autor}</Text>
               </View>
-              <Text style={styles.itemText}>{item.titulo}</Text>
+              {/* Mostramos la pregunta */}
+              <Text style={styles.itemText}>{item.pregunta}</Text>
             </TouchableOpacity>
           )}
         />
@@ -114,6 +164,7 @@ export default function BuscarPre() {
           </View>
         </Modal>
 
+        {/* Barra de navegación inferior */}
         <View style={styles.navbar}>
           <View style={styles.whiteLine}></View>
           <TouchableOpacity onPress={() => router.push('/grupos')}>
@@ -132,70 +183,17 @@ export default function BuscarPre() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#E0E0E0',
-  },
-  backgroundImage: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 0,
-    paddingTop: 30,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    marginTop: 30,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: '#333',
-  },
-  item: {
-    padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    marginVertical: 10,
-    borderRadius: 12,
-  },
-  userContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  userAvatar: {
-    width: 35,
-    height: 35,
-    borderRadius: 17.5,
-    marginRight: 10,
-  },
-  autor: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  itemText: {
-    fontSize: 18,
-    color: '#333',
-    fontWeight: '500',
-  },
-
+  container: { flex: 1, backgroundColor: '#E0E0E0' },
+  backgroundImage: { flex: 1, justifyContent: 'center', padding: 20 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.3)' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 0, paddingTop: 30 },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 25, paddingHorizontal: 20, marginHorizontal: 20, marginBottom: 20, marginTop: 30 },
+  searchInput: { flex: 1, paddingVertical: 10, fontSize: 16, color: '#333' },
+  item: { padding: 20, backgroundColor: 'rgba(255, 255, 255, 0.8)', marginVertical: 10, borderRadius: 12 },
+  userContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  userAvatar: { width: 35, height: 35, borderRadius: 17.5, marginRight: 10 },
+  autor: { fontSize: 14, fontWeight: 'bold', color: '#000' },
+  itemText: { fontSize: 18, color: '#333', fontWeight: '500' },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
   modalContainer: { backgroundColor: '#fff', padding: 20, borderRadius: 10, width: '80%' },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
@@ -205,24 +203,6 @@ const styles = StyleSheet.create({
   cancelButton: { backgroundColor: '#f44336' },
   submitButton: { backgroundColor: '#4CAF50' },
   modalButtonText: { color: '#fff', fontWeight: 'bold' },
-  navbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 15,
-    backgroundColor: '#000',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  whiteLine: {
-    width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
-    height: 5,
-    backgroundColor: '#fff',
-    position: 'absolute',
-    top: 0.5, // Esto coloca la línea justo encima del ícono de la casita
-    left: '13%', // Centra la línea horizontalmente
-    marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
-    zIndex: 100, // Asegura que la línea esté encima del ícono
-  },
+  navbar: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 15, backgroundColor: '#000', position: 'absolute', bottom: 0, left: 0, right: 0 },
+  whiteLine: { width: 65, height: 5, backgroundColor: '#fff', position: 'absolute', top: 0.5, left: '13%', marginLeft: -20, zIndex: 100 },
 });
