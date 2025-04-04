@@ -7,20 +7,26 @@ import {
   Image,
   ImageBackground,
   TouchableOpacity,
-  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import { Ionicons } from '@expo/vector-icons';
 
-const API_URL = 'http://192.168.0.101:3001/api/auth';
+const API_URL = 'http://172.17.49.242:3001/api/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
   const [matricula, setMatricula] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const validarDatos = () => {
     const mat = matricula.trim();
@@ -29,8 +35,8 @@ export default function LoginScreen() {
     if (!mat || !pass) {
       Toast.show({
         type: 'error',
-        text1: 'Error',
-        text2: 'Todos los campos son obligatorios.',
+        text1: 'Campos incompletos',
+        text2: 'Por favor ingresa tu matrícula y contraseña.',
       });
       return false;
     }
@@ -38,7 +44,7 @@ export default function LoginScreen() {
     if (!/^\d+$/.test(mat)) {
       Toast.show({
         type: 'error',
-        text1: 'Error',
+        text1: 'Matrícula inválida',
         text2: 'La matrícula debe contener solo números.',
       });
       return false;
@@ -47,7 +53,7 @@ export default function LoginScreen() {
     if (pass.length < 6) {
       Toast.show({
         type: 'error',
-        text1: 'Error',
+        text1: 'Contraseña insegura',
         text2: 'La contraseña debe tener al menos 6 caracteres.',
       });
       return false;
@@ -56,8 +62,8 @@ export default function LoginScreen() {
     if (/['"<>]/.test(pass)) {
       Toast.show({
         type: 'error',
-        text1: 'Error',
-        text2: 'La contraseña contiene caracteres no permitidos.',
+        text1: 'Caracteres no permitidos',
+        text2: 'La contraseña contiene caracteres especiales no permitidos.',
       });
       return false;
     }
@@ -70,268 +76,307 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      console.log('📤 Enviando login con:', { matricula, password });
-
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula: matricula.trim(), password: password.trim() }),
+        body: JSON.stringify({ 
+          matricula: matricula.trim(), 
+          password: password.trim() 
+        }),
       });
 
       const data = await response.json();
-      console.log('📥 Respuesta login completa:', data);
 
       if (response.ok) {
-
-        console.log('Toast se está mostrando');
-        // ✅ Toast de éxito
         Toast.show({
           type: 'success',
-          text1: 'Inicio de sesión exitoso',
-          text2: `Bienvenido, ${data.nombre}!`,
+          text1: '¡Bienvenido!',
+          text2: `Hola ${data.nombre}, estamos cargando tu información...`,
         });
-
 
         await AsyncStorage.setItem('matricula', data.matricula);
         await AsyncStorage.setItem('token', data.token);
         await AsyncStorage.setItem('nombre', data.nombre);
         await AsyncStorage.setItem('carrera', data.carrera);
 
-
-        // Luego realiza la navegación
         setTimeout(() => {
-          if (data.isAdmin) {
-            router.push('/ad_principal');
-          } else {
-            router.push('/grupos');
-          }
-        }, 2000); // Espera 2 segundos para que el Toast se vea antes de cambiar de pantalla
-        
-        // Limpiar campos
-        setMatricula('');
-        setPassword('');
-
+          router.replace(data.isAdmin ? '/ad_principal' : '/grupos');
+        }, 2000);
       } else {
         Toast.show({
           type: 'error',
-          text1: 'Inicio de sesión fallido',
+          text1: 'Credenciales incorrectas',
           text2: 'Verifica tu matrícula y contraseña e intenta de nuevo.',
         });
       }
     } catch (error) {
-      console.error('🚨 Error en login:', error);
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+      Toast.show({
+        type: 'error',
+        text1: 'Error de conexión',
+        text2: 'No se pudo conectar con el servidor. Verifica tu conexión.',
+      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const handleForgotPassword = () => {
+    router.push('/');
   };
 
   useFocusEffect(
     useCallback(() => {
       setMatricula('');
       setPassword('');
+      return () => {
+        setMatricula('');
+        setPassword('');
+      };
     }, [])
   );
 
-
   return (
-    <View style={styles.container}>
-      <ImageBackground source={require('@/assets/images/inicio_ses2.jpg')} style={styles.backgroundImage}>
-        <View style={styles.overlay} />
-        <View style={styles.contentContainer}>
-          <Image source={require('@/assets/images/ardilla.png')} style={styles.logo} resizeMode="contain" />
-          <View style={styles.switchContainer}>
-            <TouchableOpacity style={styles.switchButtonInactive} onPress={() => router.push('/registro')}>
-              <Text style={styles.switchTextInactive}>Regístrate</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.switchButtonActive}>
-              <Text style={styles.switchTextActive}>Inicia sesión</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <ImageBackground source={require('@/assets/images/inicio_ses2.jpg')} style={styles.backgroundImage}>
+          <View style={styles.overlay} />
+          <View style={styles.contentContainer}>
+            <Image source={require('@/assets/images/ardilla.png')} style={styles.logo} resizeMode="contain" />
+            
+            <View style={styles.switchContainer}>
+              <TouchableOpacity 
+                style={styles.switchButtonInactive} 
+                onPress={() => router.push('/registro')}
+              >
+                <Text style={styles.switchTextInactive}>Regístrate</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.switchButtonActive}>
+                <Text style={styles.switchTextActive}>Inicia sesión</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.title}>Iniciar Sesión</Text>
+            <Text style={styles.subtitle}>Ingresa tus credenciales para continuar</Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Matrícula"
+              placeholderTextColor="#666"
+              value={matricula}
+              onChangeText={setMatricula}
+              keyboardType="numeric"
+              editable={!loading}
+            />
+
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Contraseña"
+                placeholderTextColor="#666"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                editable={!loading}
+              />
+              <TouchableOpacity 
+                style={styles.eyeIcon} 
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons 
+                  name={showPassword ? 'eye-off' : 'eye'} 
+                  size={20} 
+                  color="#666" 
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.rememberContainer}>
+              <TouchableOpacity 
+                style={styles.rememberCheckbox}
+                onPress={() => setRememberMe(!rememberMe)}
+              >
+                <Ionicons 
+                  name={rememberMe ? 'checkbox' : 'square-outline'} 
+                  size={20} 
+                  color="#ff6b00" 
+                />
+                <Text style={styles.rememberText}>Recordar mis datos</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity onPress={handleForgotPassword}>
+                <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Iniciar Sesión</Text>
+              )}
             </TouchableOpacity>
           </View>
-          <Text style={styles.title}>Iniciar Sesión</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Matrícula"
-            value={matricula}
-            onChangeText={setMatricula}
-            keyboardType="numeric"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Contraseña"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-            <Text style={styles.buttonText}>
-              {loading ? 'Cargando...' : 'Iniciar Sesión'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ImageBackground>
-      {/* ✅ Mostrar las notificaciones estilo WhatsApp */}
+        </ImageBackground>
+      </ScrollView>
       <Toast />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: {
+    flex: 1
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center'
+  },
   backgroundImage: {
     flex: 1,
     justifyContent: 'center',
     backgroundColor: 'transparent',
-    backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8))', // Gradiente de arriba a abajo
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.1)'
   },
-  contentContainer: { alignItems: 'center', padding: 20 },
+  contentContainer: {
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 40
+  },
   switchContainer: {
     flexDirection: 'row',
     marginBottom: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 25
+    borderRadius: 25,
+    width: '100%',
+    justifyContent: 'center'
   },
-  switchButtonInactive: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 25 },
-  switchButtonActive: { backgroundColor: '#ff6b00', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 25 },
-  switchTextInactive: { color: '#666', fontSize: 16 },
-  switchTextActive: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  logo: { width: 450, height: 230, marginBottom: 20 },
-  input: { width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: 10, borderRadius: 10, marginBottom: 10 },
-  button: { backgroundColor: '#ff6b00', padding: 12, borderRadius: 25, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  linkText: { color: '#ff6b00', marginTop: 10, fontWeight: 'bold' },
-  forgotPassword: { color: '#ff6b00', marginBottom: 10, fontWeight: 'bold' },
-  registerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  switchButtonInactive: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    flex: 1,
+    alignItems: 'center'
   },
-  registerText: {
-    color: '#ff6b00',
-    fontSize: 16,
+  switchButtonActive: {
+    backgroundColor: '#ff6b00',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    flex: 1,
+    alignItems: 'center'
   },
-  registerLink: {
+  switchTextInactive: {
+    color: '#666',
+    fontSize: 16
+  },
+  switchTextActive: {
     color: '#fff',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: 'bold'
   },
-});
-
-
-
-/*import React, { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Image,
-  ImageBackground,
-  TouchableOpacity,
-  Alert
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Toast from 'react-native-toast-message';
-import { Ionicons } from '@expo/vector-icons';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.94:3001/api/auth';
-
-export default function LoginScreen() {
-  const router = useRouter();
-  const [matricula, setMatricula] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(false);
-
-  const handleLogin = async () => {
-    if (!matricula || !password) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Todos los campos son obligatorios.',
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matricula, password }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        await AsyncStorage.setItem('token', data.token);
-        await AsyncStorage.setItem('nombre', data.nombre);
-        await AsyncStorage.setItem('carrera', data.carrera);
-        Alert.alert('Bienvenido', `Hola, ${data.nombre}`);
-        router.push(data.isAdmin ? '/ad_principal' : '/grupos');
-      } else {
-        Alert.alert('Error', data.error || 'Credenciales incorrectas.');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo conectar con el servidor.');
-    }
-    setLoading(false);
-  };
-
-  return (
-    <View style={styles.container}>
-      <ImageBackground source={require('@/assets/images/inicio_ses2.jpeg')} style={styles.backgroundImage}>
-        <View style={styles.overlay} />
-        <View style={styles.contentContainer}>
-          <Image source={require('@/assets/images/ardilla.png')} style={styles.logo} resizeMode="contain" />
-          <TextInput
-            style={styles.input}
-            placeholder="Matrícula"
-            value={matricula}
-            onChangeText={setMatricula}
-            keyboardType="numeric"
-          />
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.inputPassword}
-              placeholder="Contraseña"
-              secureTextEntry={!passwordVisible}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
-              <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={24} color="gray" />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-            <Text style={styles.buttonText}>{loading ? 'Cargando...' : 'Iniciar Sesión'}</Text>
-          </TouchableOpacity>
-        </View>
-      </ImageBackground>
-      <Toast />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  backgroundImage: { flex: 1, justifyContent: 'center' },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.1)' },
-  contentContainer: { alignItems: 'center', padding: 20 },
-  logo: { width: 450, height: 230, marginBottom: 20 },
-  input: { width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: 10, borderRadius: 10, marginBottom: 10 },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  logo: {
+    width: 450,
+    height: 230,
+    marginBottom: 20
+  },
+  title: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    textAlign: 'center'
+  },
+  subtitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: 'center'
+  },
+  input: {
     width: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    padding: 10,
+    padding: 15,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 15,
+    fontSize: 16,
+    color: '#000'
   },
-  inputPassword: { flex: 1 },
-  button: { backgroundColor: '#ff6b00', padding: 12, borderRadius: 25, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-}); */
+  passwordContainer: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 10,
+    marginBottom: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 15
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+    color: '#000'
+  },
+  eyeIcon: {
+    padding: 5
+  },
+  rememberContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 15,
+    alignItems: 'center'
+  },
+  rememberCheckbox: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  rememberText: {
+    color: '#fff',
+    marginLeft: 5,
+    fontSize: 14
+  },
+  forgotPassword: {
+    color: '#ff6b00',
+    fontSize: 14,
+    fontWeight: 'bold'
+  },
+  button: {
+    backgroundColor: '#ff6b00',
+    padding: 15,
+    borderRadius: 25,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15
+  },
+  buttonDisabled: {
+    opacity: 0.7
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600'
+  },
+  registerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  registerText: {
+    color: '#fff',
+    fontSize: 16
+  },
+  registerLink: {
+    color: '#ff6b00',
+    fontWeight: 'bold',
+    fontSize: 16
+  }
+});

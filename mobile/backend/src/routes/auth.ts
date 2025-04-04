@@ -1,4 +1,4 @@
-/* src/routes/auth.ts */
+/*src/routes/auth.ts*/
 
 import { Router } from 'express';
 import { 
