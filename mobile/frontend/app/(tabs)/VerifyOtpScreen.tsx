@@ -9,23 +9,25 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    Alert
 } from "react-native";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
-import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 
-const API_URL = "http://172.17.49.242:3001/api/auth";
+const API_URL = "http://192.168.0.101:3001/api/auth";
 
+// Solución para el error de tipado - usar Record<string, string> en lugar de interfaz
 export default function VerifyOtpScreen() {
     const router = useRouter();
-    const { correo } = useLocalSearchParams();
+    const params = useLocalSearchParams();
+    const correo = typeof params.correo === 'string' ? params.correo : params.correo?.[0] || '';
+
     const [otp, setOtp] = useState("");
     const [isResending, setIsResending] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
     const [timeLeft, setTimeLeft] = useState(60);
     const [isExpired, setIsExpired] = useState(false);
 
-    // Función para resetear completamente el estado
     const resetState = () => {
         setOtp("");
         setIsResending(false);
@@ -34,7 +36,6 @@ export default function VerifyOtpScreen() {
         setIsExpired(false);
     };
 
-    // Efecto para reiniciar cuando el correo cambia o cuando la pantalla recibe foco
     useFocusEffect(
         React.useCallback(() => {
             resetState();
@@ -42,7 +43,6 @@ export default function VerifyOtpScreen() {
         }, [correo])
     );
 
-    // Temporizador de cuenta regresiva
     useEffect(() => {
         if (timeLeft <= 0) {
             setIsExpired(true);
@@ -64,53 +64,51 @@ export default function VerifyOtpScreen() {
 
     const handleVerifyOtp = async () => {
         if (!otp || otp.length !== 6) {
-            Toast.show({
-                type: "error",
-                text1: "Código incompleto",
-                text2: "Por favor ingresa los 6 dígitos del código.",
-            });
+            Alert.alert("Error", "Por favor ingresa los 6 dígitos del código.");
             return;
         }
 
         setIsVerifying(true);
         try {
-            const response = await fetch(`http://172.17.49.242:3001/api/auth/verify-otp`, {
+            const response = await fetch(`${API_URL}/verify-otp`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ correo, otp }),
             });
 
             const data = await response.json();
+            console.log("Respuesta del servidor:", data); // Debug
 
             if (response.ok) {
-                Toast.show({
-                    type: "success",
-                    text1: "¡Cuenta verificada!",
-                    text2: data.message,
+                // 1. Verificar que data.redirectTo existe
+                const redirectPath = data.redirectTo || "/inicio_ses";
+
+                // 2. Verificar que los parámetros necesarios están presentes
+                const routeParams = {
+                    matricula: data.matricula || '',
+                    nombre: data.nombre || '',
+                };
+
+                console.log("Redirigiendo a:", redirectPath, "con params:", routeParams); // Debug
+
+                // 3. Redirigir usando replace
+                router.replace({
+                    pathname: redirectPath,
+                    params: routeParams,
                 });
-                setTimeout(() => router.replace("/inicio_ses"), 2000);
+
             } else {
-                if (data.code === "OTP_EXPIRED") {
-                    Toast.show({
-                        type: "error",
-                        text1: "Código expirado",
-                        text2: data.error,
-                    });
-                    router.replace("/registro");
-                } else {
-                    Toast.show({
-                        type: "error",
-                        text1: "Error",
-                        text2: data.error || "El código es incorrecto.",
-                    });
-                }
+                Alert.alert(
+                    "Error",
+                    data.error || "No se pudo verificar el código. Intenta nuevamente."
+                );
             }
         } catch (error) {
-            Toast.show({
-                type: "error",
-                text1: "Error de conexión",
-                text2: "No se pudo verificar el código.",
-            });
+            console.error("Error en verificación:", error);
+            Alert.alert(
+                "Error de conexión",
+                "No se pudo conectar con el servidor. Verifica tu conexión."
+            );
         } finally {
             setIsVerifying(false);
         }
@@ -119,33 +117,33 @@ export default function VerifyOtpScreen() {
     const handleResendOtp = async () => {
         setIsResending(true);
         try {
-            const response = await fetch(`${API_URL}/register`, {
+            const response = await fetch(`${API_URL}/send-otp`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ correo }),
+                body: JSON.stringify({ email: correo }),
             });
 
             const data = await response.json();
             if (response.ok) {
                 resetState();
-                Toast.show({
-                    type: "success",
-                    text1: "Código reenviado",
-                    text2: "Hemos enviado un nuevo código a tu correo.",
-                });
+                Alert.alert(
+                    "Código reenviado",
+                    "Hemos enviado un nuevo código a tu correo.",
+                    [
+                        { text: "OK" }
+                    ]
+                );
             } else {
-                Toast.show({
-                    type: "error",
-                    text1: "Error",
-                    text2: data.error || "No se pudo reenviar el código.",
-                });
+                Alert.alert(
+                    "Error",
+                    data.error || "No se pudo reenviar el código."
+                );
             }
         } catch (error) {
-            Toast.show({
-                type: "error",
-                text1: "Error de conexión",
-                text2: "No se pudo conectar con el servidor.",
-            });
+            Alert.alert(
+                "Error de conexión",
+                "No se pudo conectar con el servidor."
+            );
         } finally {
             setIsResending(false);
         }
@@ -186,7 +184,7 @@ export default function VerifyOtpScreen() {
                         placeholderTextColor="#aaa"
                         value={otp}
                         onChangeText={(text) => setOtp(text.replace(/[^0-9]/g, ""))}
-                        keyboardType="numeric"
+                        keyboardType="number-pad"
                         maxLength={6}
                         textAlign="center"
                         autoFocus
@@ -248,7 +246,6 @@ export default function VerifyOtpScreen() {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-            <Toast />
         </KeyboardAvoidingView>
     );
 }

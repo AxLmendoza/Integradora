@@ -14,8 +14,9 @@ import { validateLogin, validateRegister } from "../validators/authValidator";
 
 const router = Router();
 
-router.post("/send-otp", sendVerificationCode);
+
 router.post("/verify-otp", verifyOTP);
+router.post("/send-otp", sendVerificationCode);
 router.post("/send-password-reset", sendPasswordReset);
 router.post("/reset-password", resetPassword);
 router.post("/register", validateRegister as any, registerUser);

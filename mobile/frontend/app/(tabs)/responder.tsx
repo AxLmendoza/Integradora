@@ -45,7 +45,7 @@ export default function ResponderScreen() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground source={require('@/assets/images/fondo.jpeg')} style={styles.backgroundImage} resizeMode="cover">
+      <ImageBackground source={require('../../assets/images/fondo.jpeg')} style={styles.backgroundImage} resizeMode="cover">
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.push('/elegir')}>
             <Ionicons name="arrow-back" size={30} color="#000" />

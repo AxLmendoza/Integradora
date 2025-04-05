@@ -10,15 +10,34 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  Alert,
+  Dimensions,
+  StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
 
-const API_URL = 'http://172.17.49.242:3001/api/auth';
+const API_URL = 'http://192.168.0.101:3001/api/auth';
+const { height: screenHeight } = Dimensions.get('window');
+const isAndroid = Platform.OS === 'android';
+
+const showAlert = (title: string, message: string, isError = true) => {
+  Alert.alert(
+    title,
+    message,
+    [{ text: 'OK', style: isError ? 'destructive' : 'default' }],
+    {
+      userInterfaceStyle: 'light',
+      ...Platform.select({
+        ios: {
+          tintColor: isError ? '#ff3b30' : '#ff6b00'
+        }
+      })
+    }
+  );
+};
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -33,38 +52,22 @@ export default function LoginScreen() {
     const pass = password.trim();
 
     if (!mat || !pass) {
-      Toast.show({
-        type: 'error',
-        text1: 'Campos incompletos',
-        text2: 'Por favor ingresa tu matrícula y contraseña.',
-      });
+      showAlert('Campos incompletos', 'Por favor ingresa tu matrícula y contraseña.');
       return false;
     }
 
     if (!/^\d+$/.test(mat)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Matrícula inválida',
-        text2: 'La matrícula debe contener solo números.',
-      });
+      showAlert('Matrícula inválida', 'La matrícula debe contener solo números.');
       return false;
     }
 
     if (pass.length < 6) {
-      Toast.show({
-        type: 'error',
-        text1: 'Contraseña insegura',
-        text2: 'La contraseña debe tener al menos 6 caracteres.',
-      });
+      showAlert('Contraseña insegura', 'La contraseña debe tener al menos 6 caracteres.');
       return false;
     }
 
     if (/['"<>]/.test(pass)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Caracteres no permitidos',
-        text2: 'La contraseña contiene caracteres especiales no permitidos.',
-      });
+      showAlert('Caracteres no permitidos', 'La contraseña contiene caracteres especiales no permitidos.');
       return false;
     }
 
@@ -88,11 +91,7 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        Toast.show({
-          type: 'success',
-          text1: '¡Bienvenido!',
-          text2: `Hola ${data.nombre}, estamos cargando tu información...`,
-        });
+        showAlert('¡Bienvenido!', `Hola ${data.nombre}, estamos cargando tu información...`, false);
 
         await AsyncStorage.setItem('matricula', data.matricula);
         await AsyncStorage.setItem('token', data.token);
@@ -103,25 +102,17 @@ export default function LoginScreen() {
           router.replace(data.isAdmin ? '/ad_principal' : '/grupos');
         }, 2000);
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Credenciales incorrectas',
-          text2: 'Verifica tu matrícula y contraseña e intenta de nuevo.',
-        });
+        showAlert('Credenciales incorrectas', 'Verifica tu matrícula y contraseña e intenta de nuevo.');
       }
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error de conexión',
-        text2: 'No se pudo conectar con el servidor. Verifica tu conexión.',
-      });
+      showAlert('Error de conexión', 'No se pudo conectar con el servidor. Verifica tu conexión.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleForgotPassword = () => {
-    router.push('/');
+    showAlert('Restablecer contraseña', 'Se enviará un enlace a tu correo institucional para restablecer tu contraseña.');
   };
 
   useFocusEffect(
@@ -137,120 +128,126 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={isAndroid ? 'height' : 'padding'}
       style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <ImageBackground source={require('@/assets/images/inicio_ses2.jpg')} style={styles.backgroundImage}>
-          <View style={styles.overlay} />
-          <View style={styles.contentContainer}>
-            <Image source={require('@/assets/images/ardilla.png')} style={styles.logo} resizeMode="contain" />
-            
-            <View style={styles.switchContainer}>
-              <TouchableOpacity 
-                style={styles.switchButtonInactive} 
-                onPress={() => router.push('/registro')}
-              >
-                <Text style={styles.switchTextInactive}>Regístrate</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.switchButtonActive}>
-                <Text style={styles.switchTextActive}>Inicia sesión</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.title}>Iniciar Sesión</Text>
-            <Text style={styles.subtitle}>Ingresa tus credenciales para continuar</Text>
-
-            <TextInput
-              style={styles.input}
-              placeholder="Matrícula"
-              placeholderTextColor="#666"
-              value={matricula}
-              onChangeText={setMatricula}
-              keyboardType="numeric"
-              editable={!loading}
-            />
-
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Contraseña"
-                placeholderTextColor="#666"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-              />
-              <TouchableOpacity 
-                style={styles.eyeIcon} 
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons 
-                  name={showPassword ? 'eye-off' : 'eye'} 
-                  size={20} 
-                  color="#666" 
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.rememberContainer}>
-              <TouchableOpacity 
-                style={styles.rememberCheckbox}
-                onPress={() => setRememberMe(!rememberMe)}
-              >
-                <Ionicons 
-                  name={rememberMe ? 'checkbox' : 'square-outline'} 
-                  size={20} 
-                  color="#ff6b00" 
-                />
-                <Text style={styles.rememberText}>Recordar mis datos</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity onPress={handleForgotPassword}>
-                <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={loading}
+      keyboardVerticalOffset={isAndroid ? (StatusBar.currentHeight || 0) + 20 : 0}    >
+      <ImageBackground 
+        source={require('@/assets/images/fondo_registro.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
+        <View style={styles.contentContainer}>
+          <Image 
+            source={require('@/assets/images/ardilla.png')} 
+            style={styles.logo} 
+            resizeMode="contain" 
+          />
+          
+          <View style={styles.switchContainer}>
+            <TouchableOpacity 
+              style={styles.switchButtonInactive} 
+              onPress={() => router.push('/registro')}
             >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Iniciar Sesión</Text>
-              )}
+              <Text style={styles.switchTextInactive}>Regístrate</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.switchButtonActive}>
+              <Text style={styles.switchTextActive}>Inicia sesión</Text>
             </TouchableOpacity>
           </View>
-        </ImageBackground>
-      </ScrollView>
-      <Toast />
+
+          <Text style={styles.title}>Iniciar Sesión</Text>
+          <Text style={styles.subtitle}>Ingresa tus credenciales para continuar</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Matrícula"
+            placeholderTextColor="#666"
+            value={matricula}
+            onChangeText={setMatricula}
+            keyboardType="numeric"
+            editable={!loading}
+          />
+
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Contraseña"
+              placeholderTextColor="#666"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              editable={!loading}
+            />
+            <TouchableOpacity 
+              style={styles.eyeIcon} 
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Ionicons 
+                name={showPassword ? 'eye-off' : 'eye'} 
+                size={20} 
+                color="#666" 
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.rememberContainer}>
+            <TouchableOpacity 
+              style={styles.rememberCheckbox}
+              onPress={() => setRememberMe(!rememberMe)}
+            >
+              <Ionicons 
+                name={rememberMe ? 'checkbox' : 'square-outline'} 
+                size={20} 
+                color="#ff6b00" 
+              />
+              <Text style={styles.rememberText}>Recordar mis datos</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={handleForgotPassword}>
+              <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Iniciar Sesión</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center'
+    flex: 1,
+    backgroundColor: '#fff'
   },
   backgroundImage: {
     flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
+    width: '100%',
+    height: 1000,
+    justifyContent: 'center'
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.1)'
+    backgroundColor: 'rgba(0,0,0,0.4)'
   },
   contentContainer: {
     alignItems: 'center',
     padding: 20,
-    paddingBottom: 40
+    width: '100%',
+    maxWidth: 500,
+    alignSelf: 'center',
+    marginTop: isAndroid ? StatusBar.currentHeight : 0
   },
   switchContainer: {
     flexDirection: 'row',
@@ -258,26 +255,31 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 25,
     width: '100%',
-    justifyContent: 'center'
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   switchButtonInactive: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 25,
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   switchButtonActive: {
-    backgroundColor: '#ff6b00',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 25,
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#ff6b00',
   },
   switchTextInactive: {
     color: '#666',
-    fontSize: 16
+    fontSize: 16,
+    fontWeight: '500'
   },
   switchTextActive: {
     color: '#fff',
@@ -285,22 +287,27 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   logo: {
-    width: 450,
-    height: 230,
-    marginBottom: 20
+    width: '80%',
+    height: 180,
+    marginBottom: 20,
+    maxWidth: 350
   },
   title: {
     color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 5,
-    textAlign: 'center'
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2
   },
   subtitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 14,
     marginBottom: 20,
-    textAlign: 'center'
+    textAlign: 'center',
+    paddingHorizontal: 20
   },
   input: {
     width: '100%',
@@ -309,7 +316,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
     fontSize: 16,
-    color: '#000'
+    color: '#000',
+    minHeight: 50,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)'
   },
   passwordContainer: {
     width: '100%',
@@ -318,7 +329,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 15
+    paddingRight: 15,
+    minHeight: 50,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)'
   },
   passwordInput: {
     flex: 1,
@@ -356,7 +371,12 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     width: '100%',
     alignItems: 'center',
-    marginBottom: 15
+    minHeight: 50,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   buttonDisabled: {
     opacity: 0.7
@@ -365,18 +385,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '600'
-  },
-  registerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  registerText: {
-    color: '#fff',
-    fontSize: 16
-  },
-  registerLink: {
-    color: '#ff6b00',
-    fontWeight: 'bold',
-    fontSize: 16
   }
 });

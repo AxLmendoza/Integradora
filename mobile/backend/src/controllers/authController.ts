@@ -18,15 +18,34 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    // Primero eliminamos registros expirados
-    await pool.query("DELETE FROM usuarios_temp WHERE otp_expires < NOW()");
+    console.log(`Verificando OTP para: ${correo}, código: ${otp}`);
 
     const [results]: any = await pool.query(
       "SELECT * FROM usuarios_temp WHERE correo = ?",
       [correo]
     );
 
+    console.log(`Resultados encontrados: ${results.length}`);
+    if (results.length > 0) {
+      console.log(
+        `OTP en DB: ${results[0].otp}, Expira: ${results[0].otp_expires}`
+      );
+    }
+
     if (results.length === 0) {
+      const [verifiedUser]: any = await pool.query(
+        "SELECT 1 FROM usuarios WHERE correo = ? LIMIT 1",
+        [correo]
+      );
+
+      if (verifiedUser.length > 0) {
+        res.status(400).json({
+          error: "Este correo ya está verificado. Por favor inicia sesión.",
+          code: "ALREADY_VERIFIED",
+        });
+        return;
+      }
+
       res.status(404).json({
         error:
           "Usuario no encontrado o código expirado. Por favor regístrate nuevamente.",
@@ -36,13 +55,28 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
     }
 
     const userData = results[0];
+    const now = new Date();
+    const expiresAt = new Date(userData.otp_expires);
 
     if (userData.otp !== otp) {
-      res.status(400).json({ error: "Código OTP incorrecto." });
+      res.status(400).json({
+        error: "Código OTP incorrecto.",
+        code: "INVALID_OTP",
+      });
       return;
     }
 
-    // Verificar si el usuario ya existe (protección contra doble registro)
+    if (expiresAt < now) {
+      res.status(400).json({
+        error: "El código ha expirado. Solicita uno nuevo.",
+        code: "OTP_EXPIRED",
+        expiresAt: userData.otp_expires,
+        currentTime: now,
+      });
+      return;
+    }
+
+    // Verificar si el usuario ya existe
     const [existingUser]: any = await pool.query(
       "SELECT 1 FROM usuarios WHERE matricula = ? OR correo = ? LIMIT 1",
       [userData.matricula, userData.correo]
@@ -68,17 +102,21 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
     // Eliminar el registro temporal
     await pool.query("DELETE FROM usuarios_temp WHERE correo = ?", [correo]);
 
+    // En tu verifyOTP controller, asegúrate de incluir esto:
     res.status(200).json({
       message: "Cuenta verificada correctamente.",
+      redirectTo: "/inicio_ses", // Esta línea es crucial
       matricula: userData.matricula,
       nombre: userData.nombre,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error en verifyOTP:", error);
-    res.status(500).json({ error: "Error al verificar el código OTP." });
+    res.status(500).json({
+      error: "Error al verificar el código OTP.",
+      details: error.message,
+    });
   }
 };
-
 
 export const resetPassword = async (
   req: Request,
@@ -106,9 +144,12 @@ export const resetPassword = async (
     );
 
     res.json({ message: "Contraseña actualizada correctamente." });
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error en resetPassword:", error);
-    res.status(500).json({ error: "Error en el servidor." });
+    res.status(500).json({
+      error: "Error en el servidor.",
+      details: error.message,
+    });
   }
 };
 
@@ -121,26 +162,22 @@ export const sendVerificationCode = async (req: Request, res: Response) => {
       return;
     }
 
-    // ✅ Eliminar códigos expirados
     await pool.query("DELETE FROM usuarios_temp WHERE otp_expires < NOW()");
 
-    // ✅ Verificar si el usuario ya tiene un código válido
     const [existingOTP]: any = await pool.query(
       "SELECT otp, otp_expires FROM usuarios_temp WHERE correo = ?",
       [email]
     );
 
     let verificationCode: number;
-    let otpExpires = new Date(Date.now() + 5 * 60 * 1000); // Expira en 5 minutos
+    let otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
 
     if (existingOTP.length > 0) {
       const { otp, otp_expires } = existingOTP[0];
 
-      // ✅ Si el código aún es válido, reenviarlo en lugar de generar uno nuevo
       if (new Date(otp_expires) > new Date()) {
         verificationCode = otp;
       } else {
-        // ✅ Si el código ha expirado, generar uno nuevo
         verificationCode = crypto.randomInt(100000, 999999);
         await pool.query(
           "UPDATE usuarios_temp SET otp = ?, otp_expires = ? WHERE correo = ?",
@@ -148,7 +185,6 @@ export const sendVerificationCode = async (req: Request, res: Response) => {
         );
       }
     } else {
-      // ✅ Si no hay código previo, generar uno nuevo
       verificationCode = crypto.randomInt(100000, 999999);
       await pool.query(
         "INSERT INTO usuarios_temp (correo, otp, otp_expires) VALUES (?, ?, ?)",
@@ -156,42 +192,50 @@ export const sendVerificationCode = async (req: Request, res: Response) => {
       );
     }
 
-    // ✅ Enviar el código por correo
     await sendEmail(
       email,
       "Código de verificación",
       `<p>Tu código de verificación es: <strong>${verificationCode}</strong></p>
-       <p>⚠️ Este código expirará en 5 minutos.</p>`
+       <p>⚠️ Este código expirará en 10 minutos.</p>`
     );
 
-    res.json({ message: "Código de verificación enviado." });
-  } catch (error) {
+    res.json({
+      message: "Código de verificación enviado.",
+      expiresIn: 600, // 10 minutos en segundos
+    });
+  } catch (error: any) {
     console.error("❌ Error en sendVerificationCode:", error);
-    res.status(500).json({ error: "Error al enviar el código OTP." });
+    res.status(500).json({
+      error: "Error al enviar el código OTP.",
+      details: error.message,
+    });
   }
 };
 
 export const sendPasswordReset = async (req: Request, res: Response) => {
   const { correo } = req.body;
-  const token = crypto.randomBytes(32).toString("hex");
 
-  // Guarda el token en la base de datos con expiración
-  await saveResetToken(correo, token);
+  try {
+    const token = crypto.randomBytes(32).toString("hex");
+    await saveResetToken(correo, token);
 
-  // Enviar correo con enlace de recuperación
-  const resetLink = `https://192.168.0.101:3001/reset-password?token=${token}`;
-  await sendEmail(
-    correo,
-    "Restablecer contraseña",
-    `<p>Haz clic en el siguiente enlace para restablecer tu contraseña: <a href="${resetLink}">Restablecer</a></p>`
-  );
+    const resetLink = `http://192.168.0.101:3001/reset-password?token=${token}`;
+    await sendEmail(
+      correo,
+      "Restablecer contraseña",
+      `<p>Haz clic en el siguiente enlace para restablecer tu contraseña: <a href="${resetLink}">Restablecer</a></p>`
+    );
 
-  res.json({ message: "Email de recuperación enviado" });
+    res.json({ message: "Email de recuperación enviado" });
+  } catch (error: any) {
+    console.error("❌ Error en sendPasswordReset:", error);
+    res.status(500).json({
+      error: "Error al enviar email de recuperación.",
+      details: error.message,
+    });
+  }
 };
 
-/*===========================
-  Inicio de sesion de Usuario
-  ===========================*/
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { matricula, password } = req.body;
@@ -201,12 +245,12 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Verificar que el usuario está en la tabla "usuarios" (ya verificado)
     const usuario = await verifyUser(matricula, password);
     if (!usuario || !usuario.id) {
-      res
-        .status(400)
-        .json({ error: "Credenciales incorrectas o usuario no verificado." });
+      res.status(400).json({
+        error: "Credenciales incorrectas o usuario no verificado.",
+        code: "INVALID_CREDENTIALS",
+      });
       return;
     }
 
@@ -219,20 +263,15 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       nombre: usuario.nombre,
       carrera: usuario.carrera,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error en loginUser:", error);
-    res.status(500).json({ error: "Error en el servidor, intenta más tarde." });
+    res.status(500).json({
+      error: "Error en el servidor, intenta más tarde.",
+      details: error.message,
+    });
   }
 };
 
-/*===================
-  Registro de Usuario
-  ===================*/
-
-/**
- * Registra temporalmente a un usuario y envía un código OTP a su correo.
- * Verifica duplicados en usuarios y usuarios_temp. Elimina registros expirados.
- */
 export const registerUser = async (
   req: Request,
   res: Response
@@ -240,27 +279,26 @@ export const registerUser = async (
   try {
     let { matricula, nombre, correo, carrera, password } = req.body;
 
-    // ✅ Sanitizar entradas
     matricula = matricula.trim();
     nombre = nombre.trim();
     correo = correo.trim().toLowerCase();
     carrera = carrera.trim();
 
-    // ✅ Verificar si ya está registrado permanentemente
     const [existingUser]: any = await pool.query(
       "SELECT 1 FROM usuarios WHERE matricula = ? OR correo = ? LIMIT 1",
       [matricula, correo]
     );
 
     if (existingUser.length > 0) {
-      res.status(400).json({ error: "El usuario ya está registrado." });
+      res.status(400).json({
+        error: "El usuario ya está registrado.",
+        code: "USER_EXISTS",
+      });
       return;
     }
 
-    // ✅ Eliminar registros expirados (por seguridad y limpieza)
     await pool.query("DELETE FROM usuarios_temp WHERE otp_expires < NOW()");
 
-    // ✅ Verificar si ya se envió un código antes que aún no expira
     const [tempUser]: any = await pool.query(
       "SELECT 1 FROM usuarios_temp WHERE matricula = ? OR correo = ? LIMIT 1",
       [matricula, correo]
@@ -269,19 +307,16 @@ export const registerUser = async (
     if (tempUser.length > 0) {
       res.status(400).json({
         error:
-          "Ya se envió un código de verificación. Revisa tu correo o espera que expire para volver a intentar.",
+          "Ya se envió un código de verificación. Revisa tu correo o espera que expire.",
+        code: "PENDING_VERIFICATION",
       });
       return;
     }
 
-    // ✅ Hashear contraseña
     const hashedPassword = await hashPassword(password);
-
-    // ✅ Generar código OTP de 6 dígitos y expiración de 1 minuto
     const verificationCode = crypto.randomInt(100000, 999999);
-    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // Ahora dura 5 minutos
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutos
 
-    // ✅ Insertar en tabla temporal
     await pool.query(
       `INSERT INTO usuarios_temp 
        (matricula, nombre, correo, carrera, password, otp, otp_expires) 
@@ -297,25 +332,27 @@ export const registerUser = async (
       ]
     );
 
-    // ✅ Enviar correo con código
+    console.log("Registro temporal creado para:", correo);
+
     await sendEmail(
       correo,
-      "Código de verificación - Expira en 5 minutos",
+      "Código de verificación - Expira en 10 minutos",
       `<p>Tu código de verificación es: <strong>${verificationCode}</strong></p>
-       <p>⚠️ Este código expirará en 5 minutos.</p>`
+       <p>⚠️ Este código expirará en 10 minutos.</p>`
     );
 
-    // ✅ Respuesta exitosa
     res.status(200).json({
       message: "Código de verificación enviado. Verifica tu correo.",
-      expiresIn: 300, // segundos (1 minuto)
+      expiresIn: 600, // 10 minutos en segundos
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error en registerUser:", error);
-    res.status(500).json({ error: "Error en el servidor." });
+    res.status(500).json({
+      error: "Error en el servidor.",
+      details: error.message,
+    });
   }
 };
-
 
 export const updateName = async (
   req: Request,
@@ -344,8 +381,11 @@ export const updateName = async (
     } else {
       res.json({ message: "El nombre ya estaba actualizado." });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error en updateName:", error);
-    res.status(500).json({ error: "Error en el servidor." });
+    res.status(500).json({
+      error: "Error en el servidor.",
+      details: error.message,
+    });
   }
 };

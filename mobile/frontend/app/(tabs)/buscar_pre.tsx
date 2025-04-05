@@ -80,7 +80,7 @@ export default function BuscarPre() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('@/assets/images/fondo.jpeg')}
+        source={require('../../assets/images/fondo.jpeg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -122,7 +122,7 @@ export default function BuscarPre() {
               >
               <View style={styles.userContainer}>
                 <Image
-                  source={require('@/assets/images/user.png')}
+                  source={require('../../assets/images/user.png')}
                   style={styles.userAvatar}
                 />
                 <Text style={styles.autor}>{item.autor}</Text>

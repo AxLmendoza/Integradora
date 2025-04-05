@@ -19,7 +19,7 @@ export default function HomeScreen() {
       onPress={() => router.push('/home')}
     >
       <ImageBackground
-        source={require('@/assets/images/fondo_principal.jpg')}
+        source={require('../../assets/images/fondo_principal.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -29,7 +29,7 @@ export default function HomeScreen() {
           {/* Logo tocable para navegar */}
           <TouchableOpacity onPress={() => router.push('/home')}>
             <Image
-              source={require('@/assets/images/ardilla.png')}
+              source={require('../../assets/images/ardilla.png')}
               style={styles.logo}
               resizeMode="contain"
             />

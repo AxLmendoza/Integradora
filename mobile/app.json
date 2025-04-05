@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "entryPoint": "./App.tsx",
+    "extra": {
+      "eas": {
+        "projectId": "7eab9b5d-09a4-455b-9427-a656ce7ca236"
+      }
+    },
+    "android": {
+      "package": "com.verast.mobile"
+    }
+  }
+}

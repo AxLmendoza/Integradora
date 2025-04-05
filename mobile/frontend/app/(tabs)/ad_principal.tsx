@@ -26,7 +26,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ImageBackground
-        source={require('@/assets/images/ad_fondo.jpg')}
+        source={require('../../assets/images/ad_fondo.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >

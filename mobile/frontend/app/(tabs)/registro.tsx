@@ -9,18 +9,31 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  ScrollView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Dimensions,
+  StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
-import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
 
-const API_URL = 'http://172.17.49.242:3001/api/auth';
+const API_URL = 'http://192.168.0.101:3001/api/auth';
+
+// Obtener dimensiones de la pantalla
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const isAndroid = Platform.OS === 'android';
+
+// Función para mostrar alerts personalizados
+const showAlert = (title: string, message: string, isError = true) => {
+  Alert.alert(
+    title,
+    message,
+    [{ text: 'OK', style: isError ? 'destructive' : 'default' }]
+  );
+};
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -89,11 +102,7 @@ export default function RegisterScreen() {
         await analyzeImage(asset.base64!);
       }
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No se pudo cargar la imagen. Intenta de nuevo.',
-      });
+      showAlert('Error', 'No se pudo cargar la imagen. Intenta de nuevo.');
     }
   };
 
@@ -131,25 +140,23 @@ export default function RegisterScreen() {
         if (matricula && cleanedName) {
           setMatricula(matricula);
           setNombre(cleanedName);
-          Toast.show({
-            type: 'success',
-            text1: 'Credencial verificada',
-            text2: 'Hemos extraído tu información correctamente.',
-          });
+          showAlert(
+            'Credencial verificada', 
+            'Hemos extraído tu información correctamente.', 
+            false
+          );
         } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Credencial no reconocida',
-            text2: 'Por favor verifica que la imagen sea clara y completa.',
-          });
+          showAlert(
+            'Credencial no reconocida', 
+            'Por favor verifica que la imagen sea clara y completa.'
+          );
         }
       }
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error de conexión',
-        text2: 'No se pudo procesar la imagen. Intenta de nuevo.',
-      });
+      showAlert(
+        'Error de conexión', 
+        'No se pudo procesar la imagen. Intenta de nuevo.'
+      );
     } finally {
       setLoading(false);
     }
@@ -157,65 +164,58 @@ export default function RegisterScreen() {
 
   const validarDatos = () => {
     if (!matricula || !nombre || !correo || !password || !carrera) {
-      Toast.show({
-        type: 'error',
-        text1: 'Campos incompletos',
-        text2: 'Todos los campos son obligatorios para registrarte.',
-      });
+      showAlert(
+        'Campos incompletos', 
+        'Todos los campos son obligatorios para registrarte.'
+      );
       return false;
     }
 
     if (!/^\d{8}$/.test(matricula)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Matrícula inválida',
-        text2: 'La matrícula debe tener exactamente 8 dígitos.',
-      });
+      showAlert(
+        'Matrícula inválida', 
+        'La matrícula debe tener exactamente 8 dígitos.'
+      );
       return false;
     }
 
     if (!/^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(nombre)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Nombre inválido',
-        text2: 'El nombre solo puede contener letras y espacios.',
-      });
+      showAlert(
+        'Nombre inválido', 
+        'El nombre solo puede contener letras y espacios.'
+      );
       return false;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Correo inválido',
-        text2: 'Ingresa un correo electrónico válido (ejemplo@dominio.com).',
-      });
+      showAlert(
+        'Correo inválido', 
+        'Ingresa un correo electrónico válido (ejemplo@dominio.com).'
+      );
       return false;
     }
 
     if (password.length < 6) {
-      Toast.show({
-        type: 'error',
-        text1: 'Contraseña insegura',
-        text2: 'La contraseña debe tener al menos 6 caracteres.',
-      });
+      showAlert(
+        'Contraseña insegura', 
+        'La contraseña debe tener al menos 6 caracteres.'
+      );
       return false;
     }
 
     if (/['"<>]/.test(password)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Caracteres no permitidos',
-        text2: 'La contraseña contiene caracteres especiales no permitidos.',
-      });
+      showAlert(
+        'Caracteres no permitidos', 
+        'La contraseña contiene caracteres especiales no permitidos.'
+      );
       return false;
     }
 
     if (!imageUri) {
-      Toast.show({
-        type: 'error',
-        text1: 'Credencial requerida',
-        text2: 'Debes subir una foto de tu credencial para verificar tu identidad.',
-      });
+      showAlert(
+        'Credencial requerida', 
+        'Debes subir una foto de tu credencial para verificar tu identidad.'
+      );
       return false;
     }
 
@@ -236,197 +236,187 @@ export default function RegisterScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        Toast.show({
-          type: 'success',
-          text1: '¡Registro exitoso!',
-          text2: 'Hemos enviado un código de verificación a tu correo.',
-        });
+        showAlert(
+          '¡Registro exitoso!', 
+          'Hemos enviado un código de verificación a tu correo.', 
+          false
+        );
 
         setTimeout(() => {
           router.replace(`/VerifyOtpScreen?correo=${encodeURIComponent(correo)}`);
         }, 2000);
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Error en registro',
-          text2: data.error || 'No se pudo completar el registro. Intenta de nuevo.',
-        });
+        showAlert(
+          'Error en registro', 
+          data.error || 'No se pudo completar el registro. Intenta de nuevo.'
+        );
       }
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error de conexión',
-        text2: 'No se pudo conectar con el servidor. Verifica tu conexión.',
-      });
+      showAlert(
+        'Error de conexión', 
+        'No se pudo conectar con el servidor. Verifica tu conexión.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const readOnlyInputStyles = StyleSheet.create({
-    container: {
-      width: '100%',
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      padding: 15,
-      borderRadius: 10,
-      marginBottom: 15,
-      justifyContent: 'center',
-      height: 50,
-    },
-    text: {
-      fontSize: 16,
-      color: matricula ? '#000' : '#666',
-    },
-  });
-
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={isAndroid ? 'height' : 'padding'}
       style={styles.container}
+      keyboardVerticalOffset={isAndroid ? StatusBar.currentHeight : 0}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <ImageBackground source={require('@/assets/images/fondo_registro.jpg')} style={styles.backgroundImage}>
-          <View style={styles.overlay} />
-          <View style={styles.contentContainer}>
-            <Image source={require('@/assets/images/ardilla.png')} style={styles.logo} resizeMode="contain" />
+      <ImageBackground 
+        source={require('@/assets/images/fondo_registro.jpg')} 
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
+        <View style={styles.contentContainer}>
+          <Image 
+            source={require('@/assets/images/ardilla.png')} 
+            style={styles.logo} 
+            resizeMode="contain" 
+          />
 
-            <View style={styles.switchContainer}>
-              <TouchableOpacity style={styles.switchButtonActive}>
-                <Text style={styles.switchTextActive}>Regístrate</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.switchButtonInactive}
-                onPress={() => router.push('/inicio_ses')}
-              >
-                <Text style={styles.switchTextInactive}>Inicia sesión</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.title}>Crear Cuenta</Text>
-            <Text style={styles.subtitle}>Completa tus datos para registrarte</Text>
-
-            <TouchableOpacity
-              style={[styles.imageButton, isImageUploaded && styles.imageButtonSuccess]}
-              onPress={pickImage}
-              disabled={loading}
-            >
-              <Ionicons 
-                name={isImageUploaded ? 'checkmark-circle' : 'camera'} 
-                size={24} 
-                color="#fff" 
-                style={styles.buttonIcon}
-              />
-              <Text style={styles.buttonText}>
-                {isImageUploaded ? 'Credencial verificada' : 'Subir credencial'}
-              </Text>
+          <View style={styles.switchContainer}>
+            <TouchableOpacity style={styles.switchButtonActive}>
+              <Text style={styles.switchTextActive}>Regístrate</Text>
             </TouchableOpacity>
-
-            <View style={readOnlyInputStyles.container}>
-              <Text style={readOnlyInputStyles.text}>
-                {matricula || 'Matrícula (se autocompleta)'}
-              </Text>
-            </View>
-
-            <TextInput
-              style={styles.input}
-              placeholder="Nombre completo"
-              placeholderTextColor="#666"
-              value={nombre}
-              onChangeText={(text) => {
-                const sanitizedText = text.replace(/[^a-zA-ZÁÉÍÓÚÑáéíóúñ\s]/g, '');
-                setNombre(sanitizedText);
-              }}
-              editable={!loading}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Correo electrónico"
-              placeholderTextColor="#666"
-              value={correo}
-              onChangeText={setCorreo}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={!loading}
-            />
-
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={carrera}
-                onValueChange={setCarrera}
-                style={styles.picker}
-                enabled={!loading}
-                dropdownIconColor="#666"
-              >
-                <Picker.Item label="Selecciona tu carrera" value="" />
-                <Picker.Item label="Ingeniería en Software" value="Ingeniería en Software" />
-                <Picker.Item label="Administración de Empresas" value="Administración de Empresas" />
-                <Picker.Item label="Arquitectura" value="Arquitectura" />
-              </Picker>
-            </View>
-
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                placeholder="Contraseña"
-                placeholderTextColor="#666"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-              />
-              <TouchableOpacity 
-                style={styles.eyeIcon} 
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons 
-                  name={showPassword ? 'eye-off' : 'eye'} 
-                  size={20} 
-                  color="#666" 
-                />
-              </TouchableOpacity>
-            </View>
-
             <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleRegister}
-              disabled={loading}
+              style={styles.switchButtonInactive}
+              onPress={() => router.push('/inicio_ses')}
             >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Registrarse</Text>
-              )}
+              <Text style={styles.switchTextInactive}>Inicia sesión</Text>
             </TouchableOpacity>
           </View>
-        </ImageBackground>
-      </ScrollView>
-      <Toast />
+
+          <Text style={styles.title}>Crear Cuenta</Text>
+          <Text style={styles.subtitle}>Completa tus datos para registrarte</Text>
+
+          <TouchableOpacity
+            style={[styles.imageButton, isImageUploaded && styles.imageButtonSuccess]}
+            onPress={pickImage}
+            disabled={loading}
+          >
+            <Ionicons 
+              name={isImageUploaded ? 'checkmark-circle' : 'camera'} 
+              size={24} 
+              color="#fff" 
+              style={styles.buttonIcon}
+            />
+            <Text style={styles.buttonText}>
+              {isImageUploaded ? 'Credencial verificada' : 'Subir credencial'}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.readOnlyInput}>
+            <Text style={styles.readOnlyInputText}>
+              {matricula || 'Matrícula (se autocompleta)'}
+            </Text>
+          </View>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre completo"
+            placeholderTextColor="#666"
+            value={nombre}
+            onChangeText={(text) => {
+              const sanitizedText = text.replace(/[^a-zA-ZÁÉÍÓÚÑáéíóúñ\s]/g, '');
+              setNombre(sanitizedText);
+            }}
+            editable={!loading}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Correo electrónico"
+            placeholderTextColor="#666"
+            value={correo}
+            onChangeText={setCorreo}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+          />
+
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={carrera}
+              onValueChange={setCarrera}
+              style={styles.picker}
+              enabled={!loading}
+              dropdownIconColor="#666"
+              mode="dropdown"
+            >
+              <Picker.Item label="Selecciona tu carrera" value="" />
+              <Picker.Item label="Ingeniería en Software" value="Ingeniería en Software" />
+              <Picker.Item label="Administración de Empresas" value="Administración de Empresas" />
+              <Picker.Item label="Arquitectura" value="Arquitectura" />
+            </Picker>
+          </View>
+
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Contraseña"
+              placeholderTextColor="#666"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              editable={!loading}
+            />
+            <TouchableOpacity 
+              style={styles.eyeIcon} 
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Ionicons 
+                name={showPassword ? 'eye-off' : 'eye'} 
+                size={20} 
+                color="#666" 
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Registrarse</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center'
+    flex: 1,
+    backgroundColor: '#fff'
   },
   backgroundImage: {
     flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
+    width: '100%',
+    height: 1000,
+    justifyContent: 'center'
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.1)'
+    backgroundColor: 'rgba(0,0,0,0.4)'
   },
   contentContainer: {
     alignItems: 'center',
     padding: 20,
-    paddingBottom: 40
+    width: '100%',
+    maxWidth: 500,
+    alignSelf: 'center',
+    marginTop: isAndroid ? StatusBar.currentHeight : 0
   },
   switchContainer: {
     flexDirection: 'row',
@@ -434,26 +424,31 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 25,
     width: '100%',
-    justifyContent: 'center'
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   switchButtonInactive: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 25,
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   switchButtonActive: {
-    backgroundColor: '#ff6b00',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 25,
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#ff6b00',
   },
   switchTextInactive: {
     color: '#666',
-    fontSize: 16
+    fontSize: 16,
+    fontWeight: '500'
   },
   switchTextActive: {
     color: '#fff',
@@ -461,22 +456,41 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   logo: {
-    width: 450,
-    height: 230,
-    marginBottom: 20
+    width: '80%',
+    height: 180,
+    marginBottom: 20,
+    maxWidth: 350
   },
   title: {
     color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 5,
-    textAlign: 'center'
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2
   },
   subtitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 14,
     marginBottom: 20,
-    textAlign: 'center'
+    textAlign: 'center',
+    paddingHorizontal: 20
+  },
+  readOnlyInput: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    justifyContent: 'center',
+    minHeight: 50,
+    elevation: 2,
+  },
+  readOnlyInputText: {
+    fontSize: 16,
+    color: '#000',
   },
   input: {
     width: '100%',
@@ -485,14 +499,21 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
     fontSize: 16,
-    color: '#000'
+    color: '#000',
+    minHeight: 50,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)'
   },
   pickerContainer: {
     width: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 10,
     marginBottom: 15,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)'
   },
   picker: {
     height: 50,
@@ -506,7 +527,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 15
+    paddingRight: 15,
+    minHeight: 50,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)'
   },
   passwordInput: {
     flex: 1,
@@ -518,17 +543,23 @@ const styles = StyleSheet.create({
     padding: 5
   },
   imageButton: {
-    backgroundColor: 'rgba(255, 107, 0, 0.8)',
+    backgroundColor: 'rgba(255, 107, 0, 0.9)',
     padding: 15,
     borderRadius: 25,
     width: '100%',
     alignItems: 'center',
     marginBottom: 15,
     flexDirection: 'row',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    minHeight: 50,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   imageButtonSuccess: {
-    backgroundColor: 'rgba(40, 167, 69, 0.8)'
+    backgroundColor: 'rgba(40, 167, 69, 0.9)'
   },
   buttonIcon: {
     marginRight: 10
@@ -539,7 +570,13 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     width: '100%',
     alignItems: 'center',
-    marginTop: 10
+    marginTop: 10,
+    minHeight: 50,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
   buttonDisabled: {
     opacity: 0.7
