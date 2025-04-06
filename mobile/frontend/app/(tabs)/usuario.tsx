@@ -25,7 +25,7 @@ export default function PerfilScreen() {
   const [userData, setUserData] = useState({
     nombre: 'Cargando...',
     carrera: 'Cargando...',
-    matricula: ''
+    matricula: 'Cargando...'
   });
 
   const loadUserData = async () => {
@@ -51,12 +51,10 @@ export default function PerfilScreen() {
     }
   };
 
-  // 1. Cargar datos al montar el componente
   useEffect(() => {
     loadUserData();
   }, []);
 
-  // 2. Escuchar cambios en el estado de la app
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
@@ -69,21 +67,11 @@ export default function PerfilScreen() {
     };
   }, []);
 
-  // 3. Recargar datos cuando la pantalla recibe foco
   useFocusEffect(
     React.useCallback(() => {
       loadUserData();
     }, [])
   );
-
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.clear();
-      router.replace('/inicio_ses');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -100,11 +88,8 @@ export default function PerfilScreen() {
       <ScrollView contentContainerStyle={styles.scrollView}>
         <View style={styles.profileContainer}>
           <Image 
-            source={userData.matricula 
-              ? { uri: `https://tu-api.com/avatars/${userData.matricula}.jpg` } 
-              : require('../../assets/images/user.png')} 
+            source={require('../../assets/images/user_ardilla.png')} 
             style={styles.avatar} 
-            onError={() => require('../../assets/images/user.png')}
           />
           <Text style={styles.rank}>CHIPMUNK EXPLORADOR</Text>
           <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
@@ -113,8 +98,12 @@ export default function PerfilScreen() {
           <Text style={styles.subtitle}>
             ESTUDIANTE DE {userData.carrera.toUpperCase()}
           </Text>
+          <Text style={styles.matricula}>
+            Mi matrícula: {userData.matricula}
+          </Text>
         </View>
 
+        {/* Resto del código permanece igual */}
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>56</Text>
@@ -168,13 +157,6 @@ export default function PerfilScreen() {
           contentContainerStyle={styles.horizontalList}
           showsHorizontalScrollIndicator={false}
         />
-
-        <TouchableOpacity 
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
-        </TouchableOpacity>
       </ScrollView>
 
       {/* Barra de navegación inferior */}
@@ -249,6 +231,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 20,
     marginTop: 5,
+  },
+  matricula: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    marginTop: 5,
+    fontWeight: '500',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -335,23 +325,5 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  logoutButton: {
-    backgroundColor: '#ff3b30',
-    padding: 15,
-    borderRadius: 25,
-    margin: 20,
-    marginTop: 30,
-    alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });

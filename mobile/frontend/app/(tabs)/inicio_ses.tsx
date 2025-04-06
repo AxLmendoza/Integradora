@@ -8,39 +8,26 @@ import {
   ImageBackground,
   TouchableOpacity,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
   Dimensions,
-  StatusBar
+  StatusBar,
+  ScrollView,
+  BackHandler
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { BackHandler } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import InvalidIdModal from '@/components/InvalidIdModal';
-import IncompleteFieldsModal from '@/components/IncompleteFieldsModal'; // Ajusta la ruta según tu estructura
+import IncompleteFieldsModal from '@/components/IncompleteFieldsModal';
 import { Ionicons } from '@expo/vector-icons';
 import WelcomeModal from '@/components/WelcomeModal';
 
 const API_URL = 'http://192.168.0.101:3001/api/auth';
-const { height: screenHeight } = Dimensions.get('window');
-const isAndroid = Platform.OS === 'android';
+const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
+const isSmallDevice = screenHeight < 600;
 
-const showAlert = (title: string, message: string, isError = true) => {
-  Alert.alert(
-    title,
-    message,
-    [{ text: 'OK', style: isError ? 'destructive' : 'default' }],
-    {
-      userInterfaceStyle: 'light',
-      ...Platform.select({
-        ios: {
-          tintColor: isError ? '#ff3b30' : '#ff6b00'
-        }
-      })
-    }
-  );
+const showAlert = (title: string, message: string) => {
+  Alert.alert(title, message, [{ text: 'OK' }]);
 };
 
 export default function LoginScreen() {
@@ -50,27 +37,22 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [showInvalidIdModal, setShowInvalidIdModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
+  // Manejo del botón físico de retroceso
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        // Aquí defines la ruta a la que quieres regresar
-        router.push('/home'); // Cambia '/' por la ruta que deseas
-        return true; // Esto previene el comportamiento por defecto
+        router.push('/home');
+        return true;
       };
 
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-      };
+      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, [router])
   );
-
 
   const validarDatos = () => {
     const mat = matricula.trim();
@@ -106,7 +88,7 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        setUserName(data.nombre); // Guarda el nombre en el estado
+        setUserName(data.nombre);
         setShowWelcomeModal(true);
         await AsyncStorage.setItem('matricula', data.matricula);
         await AsyncStorage.setItem('token', data.token);
@@ -130,22 +112,19 @@ export default function LoginScreen() {
     showAlert('Restablecer contraseña', 'Se enviará un enlace a tu correo institucional para restablecer tu contraseña.');
   };
 
+  // Limpiar campos al enfocar
   useFocusEffect(
     useCallback(() => {
       setMatricula('');
       setPassword('');
-      return () => {
-        setMatricula('');
-        setPassword('');
-      };
     }, [])
   );
 
   return (
-    <KeyboardAvoidingView
-      behavior={isAndroid ? 'height' : 'padding'}
-      style={styles.container}
-      keyboardVerticalOffset={isAndroid ? (StatusBar.currentHeight || 0) + 20 : 0}    >
+    <ScrollView 
+      contentContainerStyle={styles.scrollContainer}
+      keyboardShouldPersistTaps="handled"
+    >
       <ImageBackground
         source={require('@/assets/images/fondo_registro.jpg')}
         style={styles.backgroundImage}
@@ -206,13 +185,12 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.rememberContainer}>
-            <TouchableOpacity
-              style={styles.rememberCheckbox}
-              onPress={() => setRememberMe(!rememberMe)}
-            >
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity 
+            style={styles.forgotPasswordButton}
+            onPress={handleForgotPassword}
+          >
+            <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
@@ -227,6 +205,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </ImageBackground>
+
       <IncompleteFieldsModal
         visible={showIncompleteModal}
         onClose={() => setShowIncompleteModal(false)}
@@ -238,22 +217,25 @@ export default function LoginScreen() {
       <WelcomeModal
         visible={showWelcomeModal}
         onClose={() => setShowWelcomeModal(false)}
-        userName={userName} // Usa el estado que acabamos de crear
+        userName={userName}
       />
-    </KeyboardAvoidingView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    minHeight: screenHeight,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff'
   },
   backgroundImage: {
     flex: 1,
-    width: '100%',
-    height: 1000,
-    justifyContent: 'center'
+    width: screenWidth,
+    minHeight: screenHeight,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -265,11 +247,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 500,
     alignSelf: 'center',
-    marginTop: isAndroid ? StatusBar.currentHeight : 0
+    paddingTop: (StatusBar.currentHeight || 0) + (isSmallDevice ? 10 : 20),
+    paddingBottom: 80,
   },
   switchContainer: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: isSmallDevice ? 15 : 20,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 25,
     width: '100%',
@@ -281,14 +264,14 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   switchButtonInactive: {
-    paddingVertical: 12,
+    paddingVertical: isSmallDevice ? 10 : 12,
     paddingHorizontal: 20,
     flex: 1,
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   switchButtonActive: {
-    paddingVertical: 12,
+    paddingVertical: isSmallDevice ? 10 : 12,
     paddingHorizontal: 20,
     flex: 1,
     alignItems: 'center',
@@ -296,23 +279,23 @@ const styles = StyleSheet.create({
   },
   switchTextInactive: {
     color: '#666',
-    fontSize: 16,
+    fontSize: isSmallDevice ? 14 : 16,
     fontWeight: '500'
   },
   switchTextActive: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: isSmallDevice ? 14 : 16,
     fontWeight: 'bold'
   },
   logo: {
-    width: '80%',
-    height: 180,
-    marginBottom: 20,
+    width: isSmallDevice ? '70%' : '80%',
+    height: isSmallDevice ? 140 : 180,
+    marginBottom: isSmallDevice ? 15 : 20,
     maxWidth: 350
   },
   title: {
     color: '#fff',
-    fontSize: 24,
+    fontSize: isSmallDevice ? 22 : 24,
     fontWeight: 'bold',
     marginBottom: 5,
     textAlign: 'center',
@@ -322,20 +305,20 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 14,
-    marginBottom: 20,
+    fontSize: isSmallDevice ? 12 : 14,
+    marginBottom: isSmallDevice ? 15 : 20,
     textAlign: 'center',
     paddingHorizontal: 20
   },
   input: {
     width: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    padding: 15,
+    padding: isSmallDevice ? 12 : 15,
     borderRadius: 10,
     marginBottom: 15,
-    fontSize: 16,
+    fontSize: isSmallDevice ? 14 : 16,
     color: '#000',
-    minHeight: 50,
+    minHeight: isSmallDevice ? 45 : 50,
     elevation: 2,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.1)'
@@ -348,48 +331,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingRight: 15,
-    minHeight: 50,
+    minHeight: isSmallDevice ? 45 : 50,
     elevation: 2,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.1)'
   },
   passwordInput: {
     flex: 1,
-    padding: 15,
-    fontSize: 16,
+    padding: isSmallDevice ? 12 : 15,
+    fontSize: isSmallDevice ? 14 : 16,
     color: '#000'
   },
   eyeIcon: {
     padding: 5
   },
-  rememberContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+  forgotPasswordButton: {
+    alignSelf: 'flex-end',
     marginBottom: 15,
-    alignItems: 'center'
   },
-  rememberCheckbox: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  rememberText: {
-    color: '#fff',
-    marginLeft: 5,
-    fontSize: 14
-  },
-  forgotPassword: {
+  forgotPasswordText: {
     color: '#ff6b00',
-    fontSize: 14,
+    fontSize: isSmallDevice ? 12 : 14,
     fontWeight: 'bold'
   },
   button: {
     backgroundColor: '#ff6b00',
-    padding: 15,
+    padding: isSmallDevice ? 12 : 15,
     borderRadius: 25,
     width: '100%',
     alignItems: 'center',
-    minHeight: 50,
+    minHeight: isSmallDevice ? 45 : 50,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -401,7 +372,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: isSmallDevice ? 16 : 18,
     fontWeight: '600'
   }
 });

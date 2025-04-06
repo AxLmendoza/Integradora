@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
-    StyleSheet, 
-    Text, 
-    View, 
-    ImageBackground, 
-    ScrollView, 
-    TouchableOpacity, 
-    Image
+    StyleSheet,
+    Text,
+    View,
+    ImageBackground,
+    ScrollView,
+    TouchableOpacity,
+    Dimensions,
+    BackHandler
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 const groupImages: Record<string, any> = {
     'PROGRAMACIÓN Y MÁS': require('../../assets/images/fondo_programacion.jpeg'),
@@ -22,79 +26,128 @@ const groupImages: Record<string, any> = {
 export default function GrupoDetalleScreen() {
     const router = useRouter();
     const { titulo, descripcion } = useLocalSearchParams();
-    const tituloString = Array.isArray(titulo) ? titulo[0] : titulo;
+    const tituloString = Array.isArray(titulo) ? titulo[0] : titulo || 'Grupo';
+    const descripcionString = Array.isArray(descripcion) ? descripcion[0] : descripcion || 'Descripción del grupo';
     const groupImage = groupImages[tituloString] || require('@/assets/images/fondo.jpeg');
+
+    // Manejar el botón físico de retroceso en Android
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                router.push('/grupos_estu');
+                return true; // Previene el comportamiento por defecto
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => {
+                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            };
+        }, [router])
+    );
 
     return (
         <View style={styles.container}>
-            {/* Imagen de fondo con degradado */}
+            {/* Header con imagen de fondo */}
             <ImageBackground source={groupImage} style={styles.backgroundImage}>
-                <LinearGradient colors={['rgba(0,0,0,0.6)', 'transparent']} style={styles.gradient} />
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.7)', 'transparent']}
+                    style={styles.gradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                />
 
-                {/* Íconos en la parte superior */}
-                <View style={styles.topIcons}>
-                    <TouchableOpacity onPress={() => router.push('/grupos_estu')}>
-                        <Ionicons name="arrow-back" size={30} color="#fff" />
+                {/* Barra superior con botones */}
+                <View style={styles.header}>
+                    <TouchableOpacity
+                        onPress={() => router.push('/grupos')}
+                        style={styles.headerButton}
+                    >
+                        <Ionicons name="arrow-back" size={28} color="#fff" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/usuario')}>
-                        <Ionicons name="person-sharp" size={30} color="#fff" />
+
+                    <TouchableOpacity
+                        onPress={() => router.push('/(tabs)/usuario')}
+                        style={styles.headerButton}
+                    >
+                        <Ionicons name="person-sharp" size={28} color="#fff" />
                     </TouchableOpacity>
+                </View>
+
+                {/* Título del grupo */}
+                <View style={styles.titleContainer}>
+                    <Text style={styles.title} numberOfLines={2}>{tituloString}</Text>
                 </View>
             </ImageBackground>
 
-            {/* Contenedor del título */}
-            <View style={styles.titleContainer}>
-                <Text style={styles.title}>{tituloString}</Text>
-            </View>
-
-            {/* Contenido desplazable */}
-            <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 58 }]}>
-
-                <Text style={styles.description}>{descripcion}</Text>
-
-                {/* Sección de Videos */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Videos</Text>
-                    <View style={styles.row}>
-                        <View style={styles.card}>
-                            <Ionicons name="videocam-outline" size={40} color="#FF8C00" />
-                            <Text style={styles.cardTitle}>Título del Video</Text>
-                            <Text style={styles.cardDescription}>Descripción del video</Text>
-                        </View>
-                        <View style={styles.card}>
-                            <Ionicons name="videocam-outline" size={40} color="#FF8C00" />
-                            <Text style={styles.cardTitle}>Título del Video</Text>
-                            <Text style={styles.cardDescription}>Descripción del video</Text>
-                        </View>
-                    </View>
+            {/* Contenido principal */}
+            <ScrollView
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Descripción del grupo */}
+                <View style={styles.descriptionContainer}>
+                    <Text style={styles.description}>{descripcionString}</Text>
                 </View>
 
-                {/* Sección de Documentos */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Documentos</Text>
-                    <View style={styles.row}>
-                        <View style={styles.card}>
-                            <Ionicons name="document-text-outline" size={40} color="#FF8C00" />
-                            <Text style={styles.cardTitle}>Título del Documento</Text>
+                {/* Sección de Recursos */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Recursos del Grupo</Text>
+
+                    {/* Videos */}
+                    <View style={styles.sectionContent}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="videocam" size={24} color="#FF6B00" />
+                            <Text style={styles.sectionSubtitle}>Videos Tutoriales</Text>
                         </View>
-                        <View style={styles.card}>
-                            <Ionicons name="document-text-outline" size={40} color="#FF8C00" />
-                            <Text style={styles.cardTitle}>Título del Documento</Text>
+                        <View style={styles.cardContainer}>
+                            {[1, 2].map((item) => (
+                                <TouchableOpacity key={item} style={styles.card}>
+                                    <View style={styles.cardIcon}>
+                                        <Ionicons name="videocam-outline" size={32} color="#FF6B00" />
+                                    </View>
+                                    <Text style={styles.cardTitle}>Tutorial {item}</Text>
+                                    <Text style={styles.cardDescription}>Duración: 15 min</Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
                     </View>
-                </View>
 
-                {/* Sección de Imágenes */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Imágenes</Text>
-                    <View style={styles.row}>
-                        <View style={styles.card}>
-                            <Ionicons name="image-outline" size={40} color="#FF8C00" />
-                            <Text style={styles.cardTitle}>Título de la Imagen</Text>
+                    {/* Documentos */}
+                    <View style={styles.sectionContent}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="document-text" size={24} color="#FF6B00" />
+                            <Text style={styles.sectionSubtitle}>Apuntes y Guías</Text>
                         </View>
-                        <View style={styles.card}>
-                            <Ionicons name="image-outline" size={40} color="#FF8C00" />
-                            <Text style={styles.cardTitle}>Título de la Imagen</Text>
+                        <View style={styles.cardContainer}>
+                            {[1, 2].map((item) => (
+                                <TouchableOpacity key={item} style={styles.card}>
+                                    <View style={styles.cardIcon}>
+                                        <Ionicons name="document-text-outline" size={32} color="#FF6B00" />
+                                    </View>
+                                    <Text style={styles.cardTitle}>Documento {item}</Text>
+                                    <Text style={styles.cardDescription}>PDF • 2.4 MB</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    {/* Imágenes */}
+                    <View style={styles.sectionContent}>
+                        <View style={styles.sectionHeader}>
+                            <Ionicons name="images" size={24} color="#FF6B00" />
+                            <Text style={styles.sectionSubtitle}>Diagramas y Fotos</Text>
+                        </View>
+                        <View style={styles.cardContainer}>
+                            {[1, 2].map((item) => (
+                                <TouchableOpacity key={item} style={styles.card}>
+                                    <View style={styles.cardIcon}>
+                                        <Ionicons name="image-outline" size={32} color="#FF6B00" />
+                                    </View>
+                                    <Text style={styles.cardTitle}>Imagen {item}</Text>
+                                    <Text style={styles.cardDescription}>JPG • 1.2 MB</Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
                     </View>
                 </View>
@@ -102,17 +155,17 @@ export default function GrupoDetalleScreen() {
 
             {/* Barra de navegación inferior */}
             <View style={styles.navbar}>
-                      <View style={styles.whiteLine}></View>
-                      <TouchableOpacity onPress={() => router.push('/grupos')}>
-                        <Ionicons name="home-outline" size={28} color="#fff" />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => router.push('/chat')}>
-                        <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => router.push('/elegir')}>
-                        <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
-                      </TouchableOpacity>
-                    </View>
+                <View style={styles.navIndicator} />
+                <TouchableOpacity onPress={() => router.push('/grupos')}>
+                    <Ionicons name="home" size={28} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push('/chat')}>
+                    <Ionicons name="chatbubbles" size={28} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push('/elegir')}>
+                    <Ionicons name="add-circle" size={28} color="#fff" />
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -120,104 +173,179 @@ export default function GrupoDetalleScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#e1e9f1', // Gris azulado
+        backgroundColor: '#F6F1E1',
     },
     backgroundImage: {
         width: '100%',
-        height: 250,
-        position: 'relative',
+        height: 280,
     },
     gradient: {
         ...StyleSheet.absoluteFillObject,
     },
-    topIcons: {
+    header: {
         position: 'absolute',
-        top: 40,
+        top: 50,
         left: 20,
         right: 20,
         flexDirection: 'row',
         justifyContent: 'space-between',
+        zIndex: 1,
+    },
+    headerButton: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 20,
+        padding: 8,
     },
     titleContainer: {
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Fondo oscuro para el título
-        paddingVertical: 4,
-        paddingHorizontal: 20,
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        right: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: -40, // Superpone el título sobre la imagen
-
     },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: 'bold',
         color: '#fff',
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 5,
+        flex: 1,
+        marginRight: 10,
     },
     content: {
         padding: 20,
+        paddingBottom: 80,
+    },
+    descriptionContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     description: {
         fontSize: 16,
+        lineHeight: 24,
         color: '#333',
-        paddingBottom: 23,
     },
-    sectionContainer: {
-        marginBottom: 20,
-        backgroundColor: '#f5f8fc', // Fondo gris azulado suave
-        padding: 10,
-        borderRadius: 10,
+    section: {
+        marginBottom: 24,
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#5c6c7c', // Azul grisáceo
+        color: '#333',
+        marginBottom: 16,
     },
-    row: {
+    sectionContent: {
+        marginBottom: 20,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    sectionSubtitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+        marginLeft: 8,
+    },
+    cardContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
     },
     card: {
-        backgroundColor: '#d0dae0', // Gris suave
-        padding: 15,
-        borderRadius: 10,
         width: '48%',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    cardIcon: {
+        backgroundColor: 'rgba(255, 107, 0, 0.1)',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+    cardDescription: {
+        fontSize: 12,
+        color: '#666',
+        textAlign: 'center',
+    },
+    joinButton: {
+        backgroundColor: '#FF6B00',
+        borderRadius: 25,
+        padding: 16,
+        alignItems: 'center',
+        marginTop: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
         shadowRadius: 4,
         elevation: 5,
-        marginBottom: 10,
     },
-    cardTitle: {
+    joinButtonSmall: {
+        backgroundColor: '#FF6B00',
+        borderRadius: 20,
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        alignSelf: 'flex-start',
+    },
+    joinButtonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    joinButtonTextSmall: {
+        color: '#fff',
         fontSize: 14,
         fontWeight: 'bold',
-        marginTop: 5,
-        color: '#2e3d4d', // Azul grisáceo oscuro
-    },
-    cardDescription: {
-        fontSize: 12,
-        textAlign: 'center',
-        color: '#5c6c7c', // Azul grisáceo
     },
     navbar: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        paddingVertical: 15,
+        alignItems: 'center',
+        height: 70,
         backgroundColor: '#000',
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-      },
-      whiteLine: {
-        width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    navIndicator: {
+        position: 'absolute',
+        top: -5,
+        left: '10%',
+        width: '20%',
         height: 5,
         backgroundColor: '#fff',
-        position: 'absolute',
-        top: 0.5, // Esto coloca la línea justo encima del ícono de la casita
-        left: '13%', // Centra la línea horizontalmente
-        marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
-        zIndex: 100, // Asegura que la línea esté encima del ícono
-      },
+        borderRadius: 3,
+    },
 });

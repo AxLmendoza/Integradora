@@ -8,15 +8,30 @@ import {
     Image,
     TextInput,
     ScrollView,
+    BackHandler
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function GruposEstuScreen() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = React.useState('');
 
-    // Filtrar grupos según la búsqueda
+    // Manejar el botón físico de retroceso
+    useFocusEffect(
+        React.useCallback(() => {
+            const onBackPress = () => {
+                router.push('/grupos');
+                return true;
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        }, [router])
+    );
+
+    // Filtrar grupos
     const filteredGroups = groups.filter(group =>
         group.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -28,75 +43,128 @@ export default function GruposEstuScreen() {
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
-                <View style={styles.overlay} />
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.5)', 'transparent']}
+                    style={styles.gradient}
+                />
 
                 {/* Encabezado */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.push('/menu')}>
-                        <Ionicons name="menu" size={30} color="#000" />
+                    <TouchableOpacity 
+                        onPress={() => router.push('/grupos')}
+                        style={styles.headerButton}
+                    >
+                        <Ionicons name="arrow-back" size={28} color="#fff" />
                     </TouchableOpacity>
-                    <Text style={styles.title}>GRUPOS</Text>
-                    <TouchableOpacity onPress={() => router.push('/usuario')}>
-                        <Ionicons name="person-sharp" size={30} color="#000" />
+                    
+                    <Text style={styles.headerTitle}>Grupos de Estudio</Text>
+                    
+                    <TouchableOpacity 
+                        onPress={() => router.push('/(tabs)/usuario')}
+                        style={styles.headerButton}
+                    >
+                        <Ionicons name="person-sharp" size={28} color="#fff" />
                     </TouchableOpacity>
                 </View>
 
                 {/* Barra de búsqueda */}
                 <View style={styles.searchContainer}>
+                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Nombre del grupo"
+                        placeholder="Buscar grupos..."
                         placeholderTextColor="#666"
                         value={searchQuery}
-                        onChangeText={setSearchQuery} // Filtra en tiempo real
-                        returnKeyType="search"
+                        onChangeText={setSearchQuery}
                     />
-                    <Ionicons name="search" size={20} color="#000" style={styles.searchIcon} />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchQuery('')}>
+                            <Ionicons name="close" size={20} color="#666" />
+                        </TouchableOpacity>
+                    )}
                 </View>
 
-                {/* Lista de grupos filtrados */}
-                <ScrollView contentContainerStyle={[styles.groupsContainer, { paddingBottom: 57 }]}>
+                {/* Contenido */}
+                <ScrollView 
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
                     {filteredGroups.length > 0 ? (
                         filteredGroups.map((group, index) => (
-                            <View key={index} style={styles.groupCard}>
-                                <Image source={group.image} style={styles.groupImage} />
-                                <Text style={styles.groupTitle}>{group.title}</Text>
-                                <Text style={styles.groupDescription}>{group.description}</Text>
+                            <TouchableOpacity
+                                key={index}
+                                style={styles.groupCard}
+                                onPress={() => {
+                                    if (group.title === 'MATEMÁTICAS SIUUU') {
+                                        router.push('/verificacion_cod');
+                                    } else {
+                                        router.push({
+                                            pathname: '/grupo_detalle',
+                                            params: { 
+                                                titulo: group.title, 
+                                                descripcion: group.description 
+                                            }
+                                        });
+                                    }
+                                }}
+                            >
+                                <Image 
+                                    source={group.image} 
+                                    style={styles.groupImage}
+                                    resizeMode="cover"
+                                />
+                                <LinearGradient
+                                    colors={['transparent', 'rgba(0,0,0,0.7)']}
+                                    style={styles.imageOverlay}
+                                />
+                                
+                                <View style={styles.groupContent}>
+                                    <Text style={styles.groupTitle}>{group.title}</Text>
+                                    <Text style={styles.groupDescription}>
+                                        {group.description}
+                                    </Text>
+                                </View>
+                                
                                 <TouchableOpacity
                                     style={styles.joinButton}
-                                    onPress={() => {
+                                    onPress={(e) => {
+                                        e.stopPropagation();
                                         if (group.title === 'MATEMÁTICAS SIUUU') {
-                                            router.push('/verificacion_cod'); // Redirigir a la pantalla de verificación de código
+                                            router.push('/verificacion_cod');
                                         } else {
                                             router.push({
                                                 pathname: '/grupo_detalle',
-                                                params: { titulo: group.title, descripcion: group.description }
+                                                params: { 
+                                                    titulo: group.title, 
+                                                    descripcion: group.description 
+                                                }
                                             });
                                         }
                                     }}
                                 >
-                                    <Text style={styles.joinButtonText}>UNIRTE</Text>
+                                    <Text style={styles.joinButtonText}>UNIRSE</Text>
                                 </TouchableOpacity>
-
-                            </View>
+                            </TouchableOpacity>
                         ))
                     ) : (
-                        <Text style={styles.noResults}>No se encontraron grupos</Text>
+                        <View style={styles.emptyState}>
+                            <Ionicons name="people-outline" size={60} color="#888" />
+                            <Text style={styles.emptyText}>No se encontraron grupos</Text>
+                        </View>
                     )}
                 </ScrollView>
 
-
-                {/* Barra de navegación inferior */}
+                {/* Barra de navegación (mismo diseño que GruposDetalleScreen) */}
                 <View style={styles.navbar}>
-                    <View style={styles.whiteLine}></View>
+                    <View style={styles.navIndicator} />
                     <TouchableOpacity onPress={() => router.push('/grupos')}>
-                        <Ionicons name="home-outline" size={28} color="#fff" />
+                        <Ionicons name="home" size={28} color="#fff" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => router.push('/chat')}>
-                        <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
+                        <Ionicons name="chatbubbles" size={28} color="#fff" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => router.push('/elegir')}>
-                        <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
+                        <Ionicons name="add-circle" size={28} color="#fff" />
                     </TouchableOpacity>
                 </View>
             </ImageBackground>
@@ -104,6 +172,7 @@ export default function GruposEstuScreen() {
     );
 }
 
+// Datos de grupos
 const groups = [
     {
         title: 'PROGRAMACIÓN Y MÁS',
@@ -127,16 +196,17 @@ const groups = [
     }
 ];
 
+// Estilos (consistentes con GruposDetalleScreen)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#F6F1E1',
     },
     backgroundImage: {
         flex: 1,
     },
-    overlay: {
+    gradient: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(255,165,0,0.3)',
     },
     header: {
         flexDirection: 'row',
@@ -144,11 +214,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingTop: 50,
+        paddingBottom: 10,
     },
-    title: {
-        fontSize: 24,
+    headerButton: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 20,
+        padding: 8,
+    },
+    headerTitle: {
+        fontSize: 22,
         fontWeight: 'bold',
-        color: '#000',
+        color: '#fff',
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 5,
     },
     searchContainer: {
         flexDirection: 'row',
@@ -156,76 +235,95 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 25,
         paddingHorizontal: 15,
-        marginHorizontal: 30,
-        marginBottom: 15,
-        marginTop: 20,
+        marginHorizontal: 20,
+        marginVertical: 15,
+        height: 50,
     },
     searchInput: {
         flex: 1,
-        paddingVertical: 10,
+        paddingHorizontal: 10,
+        fontSize: 16,
     },
     searchIcon: {
-        marginLeft: 10,
+        marginRight: 10,
     },
-    groupsContainer: {
-        alignItems: 'center',
+    scrollContent: {
+        paddingHorizontal: 20,
+        paddingBottom: 80,
     },
     groupCard: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 10,
-        width: '90%',
+        borderRadius: 12,
+        overflow: 'hidden',
         marginBottom: 15,
-        alignItems: 'center',
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     groupImage: {
         width: '100%',
-        height: 100,
-        borderRadius: 10,
+        height: 150,
+    },
+    imageOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        top: '50%',
+    },
+    groupContent: {
+        padding: 15,
     },
     groupTitle: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
-        marginTop: 5,
+        color: '#333',
+        marginBottom: 5,
     },
     groupDescription: {
         fontSize: 14,
-        textAlign: 'center',
-        marginVertical: 5,
+        color: '#666',
+        lineHeight: 20,
     },
     joinButton: {
-        backgroundColor: '#FF8C00',
-        padding: 8,
-        borderRadius: 5,
+        backgroundColor: '#FF6B00',
+        padding: 12,
+        alignItems: 'center',
     },
     joinButtonText: {
         color: '#fff',
         fontWeight: 'bold',
-    },
-    noResults: {
         fontSize: 16,
-        color: '#555',
-        marginTop: 20,
-        textAlign: 'center',
+    },
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 40,
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#666',
+        marginTop: 10,
     },
     navbar: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        paddingVertical: 15,
+        alignItems: 'center',
+        height: 70,
         backgroundColor: '#000',
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255, 255, 255, 0.1)',
     },
-    whiteLine: {
-        width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
+    navIndicator: {
+        position: 'absolute',
+        top: -5,
+        left: '10%',
+        width: '20%',
         height: 5,
         backgroundColor: '#fff',
-        position: 'absolute',
-        top: 0.5, // Esto coloca la línea justo encima del ícono de la casita
-        left: '13%', // Centra la línea horizontalmente
-        marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
-        zIndex: 100, // Asegura que la línea esté encima del ícono
+        borderRadius: 3,
     },
 });

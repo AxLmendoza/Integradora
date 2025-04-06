@@ -9,10 +9,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   Dimensions,
-  StatusBar
+  StatusBar,
+  ScrollView,
+  BackHandler
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -20,17 +20,14 @@ import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import CustomModal from '@/components/CustomModal';
 import { Ionicons } from '@expo/vector-icons';
-import { BackHandler } from 'react-native';
 
 const API_URL = 'http://192.168.0.101:3001/api/auth';
 
 // Obtener dimensiones de la pantalla
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-const isAndroid = Platform.OS === 'android';
-
+const isSmallDevice = screenHeight < 600;
 
 export default function RegisterScreen() {
-
   const router = useRouter();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [matricula, setMatricula] = useState('');
@@ -44,13 +41,12 @@ export default function RegisterScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
+
   const showModal = (title: string, message: string) => {
     setModalTitle(title);
     setModalMessage(message);
     setModalVisible(true);
   };
-
-
 
   // Limpieza de estados
   useFocusEffect(
@@ -74,18 +70,16 @@ export default function RegisterScreen() {
     }, [])
   );
 
+  // Manejo del botón físico de retroceso
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        router.push('/home'); // Redirige a la pantalla de inicio de sesión
-        return true; // Evita el comportamiento por defecto
+        router.push('/home');
+        return true;
       };
-  
+
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
-  
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-      };
+      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, [router])
   );
 
@@ -96,7 +90,7 @@ export default function RegisterScreen() {
       if (status !== 'granted') {
         Alert.alert(
           'Permiso requerido',
-          'Para continuar con tu registro, necesitamos acceso a tu galería para verificar tu credencial.',
+          'Necesitamos acceso a tu galería para verificar tu credencial.',
           [
             { text: 'Cancelar', style: 'cancel' },
             { text: 'Abrir configuración', onPress: () => ImagePicker.requestMediaLibraryPermissionsAsync() }
@@ -160,9 +154,9 @@ export default function RegisterScreen() {
         if (matricula && cleanedName) {
           setMatricula(matricula);
           setNombre(cleanedName);
-          showModal('Credencial verificada', 'Hemos extraído tu información correctamente.');;
+          showModal('Credencial verificada', 'Hemos extraído tu información correctamente.');
         } else {
-          showModal('Credencial no reconocida', 'Por favor verifica que la imagen sea clara y completa.');;
+          showModal('Credencial no reconocida', 'Por favor verifica que la imagen sea clara y completa.');
         }
       }
     } catch (error) {
@@ -204,8 +198,7 @@ export default function RegisterScreen() {
     }
 
     if (!imageUri) {
-      showModal('Credencial requerida', 'Debes subir una foto de tu credencial para verificar tu identidad.'
-      );
+      showModal('Credencial requerida', 'Debes subir una foto de tu credencial para verificar tu identidad.');
       return false;
     }
 
@@ -242,10 +235,9 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={isAndroid ? 'height' : 'padding'}
-      style={styles.container}
-      keyboardVerticalOffset={isAndroid ? StatusBar.currentHeight : 0}
+    <ScrollView 
+      contentContainerStyle={styles.scrollContainer}
+      keyboardShouldPersistTaps="handled"
     >
       <ImageBackground
         source={require('@/assets/images/fondo_registro.jpg')}
@@ -327,7 +319,6 @@ export default function RegisterScreen() {
               style={styles.picker}
               enabled={!loading}
               dropdownIconColor="#666"
-              mode="dropdown"
             >
               <Picker.Item label="Selecciona tu carrera" value="" />
               <Picker.Item label="Ingeniería en Software" value="Ingeniería en Software" />
@@ -377,20 +368,23 @@ export default function RegisterScreen() {
         message={modalMessage}
         onClose={() => setModalVisible(false)}
       />  
-    </KeyboardAvoidingView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    minHeight: screenHeight,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff'
   },
   backgroundImage: {
     flex: 1,
-    width: '100%',
-    height: 1000,
-    justifyContent: 'center'
+    width: screenWidth,
+    minHeight: screenHeight,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -402,8 +396,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 500,
     alignSelf: 'center',
-    marginTop: isAndroid ? StatusBar.currentHeight : 0
-  },
+    paddingTop: (StatusBar.currentHeight || 0) + 20, // Solución aplicada aquí
+    paddingBottom: 80,
+},
   switchContainer: {
     flexDirection: 'row',
     marginBottom: 20,
@@ -442,14 +437,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   logo: {
-    width: '80%',
-    height: 180,
-    marginBottom: 20,
-    maxWidth: 350
+    width: isSmallDevice ? '60%' : '70%',
+    height: isSmallDevice ? 120 : 150,
+    marginBottom: 15,
+    maxWidth: 300
   },
   title: {
     color: '#fff',
-    fontSize: 24,
+    fontSize: isSmallDevice ? 22 : 24,
     fontWeight: 'bold',
     marginBottom: 5,
     textAlign: 'center',
@@ -459,7 +454,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 14,
+    fontSize: isSmallDevice ? 12 : 14,
     marginBottom: 20,
     textAlign: 'center',
     paddingHorizontal: 20
@@ -569,7 +564,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600'
   },
 });

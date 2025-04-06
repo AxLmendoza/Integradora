@@ -13,10 +13,10 @@ import {
   Dimensions,
   Platform,
   StatusBar,
-  BackHandler
+  BackHandler,
+  AppState
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -37,48 +37,61 @@ const isAndroid = Platform.OS === 'android';
 export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [carrera, setCarrera] = React.useState<string | null>(null);
+  const [carrera, setCarrera] = React.useState<string>('Cargando carrera...');
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  // Función para cargar los datos del usuario
+  const loadUserData = async () => {
+    try {
+      const storedCarrera = await AsyncStorage.getItem('carrera');
+      if (storedCarrera) {
+        setCarrera(storedCarrera);
+      } else {
+        setCarrera('No especificado');
+        console.warn('No se encontró la carrera en AsyncStorage');
+      }
+    } catch (error) {
+      console.error('Error al cargar la carrera:', error);
+      setCarrera('Error al cargar');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Cargar datos al montar el componente
+  React.useEffect(() => {
+    loadUserData();
+  }, []);
+
+  // Escuchar cambios en el estado de la app
+  React.useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        loadUserData();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  // Recargar datos cuando la pantalla recibe foco
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUserData();
+      setSearchQuery('');
+    }, [])
+  );
 
   // Bloquear el botón de retroceso físico
   useFocusEffect(
     React.useCallback(() => {
-      const onBackPress = () => {
-        return true; // Retornar true indica que hemos manejado el evento
-      };
-
+      const onBackPress = () => true;
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-      };
+      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, [])
   );
-
-  // Limpiar búsqueda cuando la pantalla recibe foco
-  useFocusEffect(
-    React.useCallback(() => {
-      setSearchQuery('');
-      return () => {};
-    }, [])
-  );
-
-  // Obtener la carrera desde AsyncStorage
-  React.useEffect(() => {
-    const fetchCarrera = async () => {
-      try {
-        const storedCarrera = await AsyncStorage.getItem('carrera');
-        if (storedCarrera) {
-          setCarrera(storedCarrera);
-        } else {
-          Alert.alert('Error', 'No se pudo obtener la carrera.');
-        }
-      } catch (error) {
-        console.error('Error obteniendo la carrera:', error);
-      }
-    };
-
-    fetchCarrera();
-  }, []);
 
   const handleSearchSubmit = () => {
     if (searchQuery.trim() !== '') {
@@ -91,10 +104,22 @@ export default function HomeScreen() {
     }
   };
 
-  // Función para navegar limpiando la búsqueda
   const navigateWithCleanSearch = (route: AppRoute) => {
     setSearchQuery('');
     router.push(route as never);
+  };
+
+  // Función para formatear el nombre de la carrera
+  const formatCarreraName = (name: string) => {
+    if (!name) return 'Carrera no especificada';
+    
+    // Eliminar "INGENIERÍA EN " si existe
+    const formatted = name.replace(/INGENIERÍA EN /i, '');
+    
+    // Convertir a mayúsculas solo la primera letra de cada palabra
+    return formatted.split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   };
 
   return (
@@ -116,9 +141,9 @@ export default function HomeScreen() {
           </TouchableOpacity>
           
           <View style={styles.headerCenter}>
-            {carrera && (
+            {!isLoading && (
               <Text style={styles.carreraTitle} numberOfLines={1} ellipsizeMode="tail">
-                {carrera}
+                {formatCarreraName(carrera)}
               </Text>
             )}
           </View>
@@ -130,7 +155,6 @@ export default function HomeScreen() {
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
         </View>
-
         <ScrollView 
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"

@@ -3,6 +3,10 @@
     "name": "mobile",
     "slug": "mobile",
     "version": "1.0.0",
+    "fonts": [
+      "node_modules/@expo-google-fonts/inter/Inter_400Regular.ttf",
+      "node_modules/@expo-google-fonts/inter/Inter_600SemiBold.ttf"
+    ],
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
