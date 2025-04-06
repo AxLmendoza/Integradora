@@ -8,16 +8,59 @@ import {
   Image,
   TextInput,
   Keyboard,
-  Alert
+  Alert,
+  ScrollView,
+  Dimensions,
+  Platform,
+  StatusBar,
+  BackHandler
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+type AppRoute = 
+  | '/'
+  | '/inicio_ses'
+  | '/buscar_pre'
+  | '/grupos_estu'
+  | '/chat'
+  | '/elegir'
+  | '/grupos'
+  | '/(tabs)/menu'
+  | '/(tabs)/usuario';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const isAndroid = Platform.OS === 'android';
 
 export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = React.useState('');
   const [carrera, setCarrera] = React.useState<string | null>(null);
+
+  // Bloquear el botón de retroceso físico
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        return true; // Retornar true indica que hemos manejado el evento
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      };
+    }, [])
+  );
+
+  // Limpiar búsqueda cuando la pantalla recibe foco
+  useFocusEffect(
+    React.useCallback(() => {
+      setSearchQuery('');
+      return () => {};
+    }, [])
+  );
 
   // Obtener la carrera desde AsyncStorage
   React.useEffect(() => {
@@ -39,9 +82,19 @@ export default function HomeScreen() {
 
   const handleSearchSubmit = () => {
     if (searchQuery.trim() !== '') {
-      router.push(`/buscar_pre?query=${searchQuery}`);
-      Keyboard.dismiss(); // Ocultar el teclado después de enviar la búsqueda
+      router.push({
+        pathname: '/buscar_pre',
+        params: { query: searchQuery }
+      } as never);
+      setSearchQuery('');
+      Keyboard.dismiss();
     }
+  };
+
+  // Función para navegar limpiando la búsqueda
+  const navigateWithCleanSearch = (route: AppRoute) => {
+    setSearchQuery('');
+    router.push(route as never);
   };
 
   return (
@@ -52,61 +105,140 @@ export default function HomeScreen() {
         resizeMode="cover"
       >
         <View style={styles.overlay} />
-
-        {/* Encabezado con iconos */}
+        
+        {/* Encabezado mejorado */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/menu')}>
+          <TouchableOpacity 
+            onPress={() => navigateWithCleanSearch('/(tabs)/menu')}
+            style={styles.headerButton}
+          >
             <Ionicons name="menu" size={30} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>
+          
+          <View style={styles.headerCenter}>
+            {carrera && (
+              <Text style={styles.carreraTitle} numberOfLines={1} ellipsizeMode="tail">
+                {carrera}
+              </Text>
+            )}
+          </View>
+          
+          <TouchableOpacity 
+            onPress={() => navigateWithCleanSearch('/(tabs)/usuario')}
+            style={styles.headerButton}
+          >
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
         </View>
 
-        {/* Muestra la carrera como título */}
-        {carrera && <Text style={styles.carreraTitle}>{carrera}</Text>}
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Sección de búsqueda mejorada */}
+          <View style={styles.searchSection}>
+            <Text style={styles.title}>Buscar pregunta</Text>
+            <Text style={styles.subtitle}>Encuentra respuestas entre tus compañeros</Text>
+            
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar preguntas..."
+                placeholderTextColor="#666"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={handleSearchSubmit}
+                returnKeyType="search"
+              />
+              <TouchableOpacity 
+                onPress={handleSearchSubmit}
+                style={styles.searchButton}
+              >
+                <Ionicons name="search" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
 
-        {/* Título */}
-        <Text style={styles.title}>Buscar pregunta</Text>
+          {/* Tarjeta de grupos mejorada */}
+          <View style={styles.cardContainer}>
+            <Text style={styles.sectionTitle}>Grupos de estudio</Text>
+            <Text style={styles.sectionSubtitle}>Únete a grupos de tu carrera</Text>
+            
+            <TouchableOpacity 
+              onPress={() => navigateWithCleanSearch('/grupos_estu')}
+              style={styles.groupsCard}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={require('../../assets/images/grupos_icon.png')}
+                style={styles.groupsImage}
+                resizeMode="contain"
+              />
+              <View style={styles.cardOverlay}>
+                <Text style={styles.cardText}>Explorar Grupos</Text>
+                <Ionicons name="arrow-forward" size={24} color="#fff" />
+              </View>
+            </TouchableOpacity>
+          </View>
 
-        {/* Barra de búsqueda */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar"
-            placeholderTextColor="#666"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onSubmitEditing={handleSearchSubmit} // Detecta cuando presionan Enter
-            returnKeyType="search"
-          />
-          <TouchableOpacity onPress={handleSearchSubmit}>
-            <Ionicons name="search" size={20} color="#000" style={styles.searchIcon} />
-          </TouchableOpacity>
-        </View>
+          {/* Sección de accesos rápidos */}
+          <View style={styles.quickActions}>
+            <Text style={styles.sectionTitle}>Accesos rápidos</Text>
+            
+            <View style={styles.actionsRow}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => navigateWithCleanSearch('/chat')}
+              >
+                <Ionicons name="chatbubbles" size={28} color="#ff6b00" />
+                <Text style={styles.actionText}>Chat</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => navigateWithCleanSearch('/elegir')}
+              >
+                <Ionicons name="add-circle" size={28} color="#ff6b00" />
+                <Text style={styles.actionText}>Nueva Pregunta</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => navigateWithCleanSearch('/grupos')}
+              >
+                <Ionicons name="people" size={28} color="#ff6b00" />
+                <Text style={styles.actionText}>Mis Grupos</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
 
-        {/* Imagen de Grupos */}
-        <View style={styles.contentContainer}>
-          <TouchableOpacity onPress={() => router.push('/grupos_estu')}>
-            <Image
-              source={require('../../assets/images/grupos_icon.png')}
-              style={styles.groupsImage}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Barra de navegación inferior */}
+        {/* Barra de navegación mejorada */}
         <View style={styles.navbar}>
-          <View style={styles.whiteLine}></View>
-          <TouchableOpacity onPress={() => router.push('/grupos')}>
-            <Ionicons name="home-outline" size={28} color="#fff" />
+          <View style={styles.navIndicator}></View>
+          <TouchableOpacity 
+            onPress={() => navigateWithCleanSearch('/grupos')}
+            style={styles.navButton}
+          >
+            <Ionicons name="home" size={28} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/chat')}>
-            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
+          <TouchableOpacity 
+            onPress={() => navigateWithCleanSearch('/chat')}
+            style={styles.navButton}
+          >
+            <Ionicons name="chatbubbles" size={28} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/elegir')}>
-            <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
+          <TouchableOpacity 
+            onPress={() => navigateWithCleanSearch('/elegir')}
+            style={styles.navButton}
+          >
+            <Ionicons name="add-circle" size={28} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => navigateWithCleanSearch('/(tabs)/usuario')}
+            style={styles.navButton}
+          >
+            <Ionicons name="person" size={28} color="#fff" />
           </TouchableOpacity>
         </View>
       </ImageBackground>
@@ -117,81 +249,193 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: isAndroid ? StatusBar.currentHeight : 0,
   },
   backgroundImage: {
     flex: 1,
-    justifyContent: 'flex-start',
+    width: '100%',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(255,165,0,0.3)',
+  },
+  scrollContainer: {
+    paddingBottom: 80, // Espacio para el navbar
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 15,
+    paddingBottom: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  headerButton: {
+    padding: 5,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 10,
   },
   carreraTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 10,
     color: '#000',
+    maxWidth: screenWidth - 120,
+  },
+  searchSection: {
+    paddingHorizontal: 25,
+    paddingTop: 20,
+    paddingBottom: 15,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 5,
     color: '#000',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#333',
+    marginBottom: 20,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    marginHorizontal: 30,
-    marginBottom: 15,
-    marginTop: 10,
+    borderRadius: 30,
+    paddingHorizontal: 20,
+    height: 50,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   searchInput: {
     flex: 1,
-    paddingVertical: 10,
+    fontSize: 16,
+    color: '#000',
   },
-  searchIcon: {
-    marginLeft: 50,
-  },
-  contentContainer: {
+  searchButton: {
+    backgroundColor: '#ff6b00',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  cardContainer: {
+    paddingHorizontal: 25,
+    marginTop: 15,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 5,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 15,
+  },
+  groupsCard: {
+    borderRadius: 15,
+    overflow: 'hidden',
+    height: 200,
+    position: 'relative',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
   groupsImage: {
-    width: 500,
-    height: 250,
-    marginTop: 100,
+    width: '100%',
+    height: '100%',
+  },
+  cardOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    padding: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  quickActions: {
+    paddingHorizontal: 25,
+    marginBottom: 30,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  actionButton: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    width: '30%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  actionText: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#333',
+    textAlign: 'center',
   },
   navbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 15,
+    alignItems: 'center',
+    height: 70,
     backgroundColor: '#000',
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
   },
-  whiteLine: {
-    width: 65,
+  navButton: {
+    padding: 10,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navIndicator: {
+    position: 'absolute',
+    top: -5,
+    left: '10%',
+    width: '20%',
     height: 5,
     backgroundColor: '#fff',
-    position: 'absolute',
-    top: 0.5,
-    left: '13%',
-    marginLeft: -20,
-    zIndex: 100,
+    borderRadius: 3,
   },
 });

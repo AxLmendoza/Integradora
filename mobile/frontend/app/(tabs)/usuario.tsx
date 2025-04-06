@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, FlatList, Image, TouchableOpacity, AppState } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const publicaciones = [
   { id: '1', texto: 'Publicación 1: Programar es el arte de dar instrucciones a una computadora...' },
@@ -21,6 +22,68 @@ const grupos = [
 
 export default function PerfilScreen() {
   const router = useRouter();
+  const [userData, setUserData] = useState({
+    nombre: 'Cargando...',
+    carrera: 'Cargando...',
+    matricula: ''
+  });
+
+  const loadUserData = async () => {
+    try {
+      const [nombre, carrera, matricula] = await Promise.all([
+        AsyncStorage.getItem('nombre'),
+        AsyncStorage.getItem('carrera'),
+        AsyncStorage.getItem('matricula')
+      ]);
+      
+      if (nombre && carrera && matricula) {
+        setUserData({
+          nombre,
+          carrera,
+          matricula
+        });
+      } else {
+        router.replace('/inicio_ses');
+      }
+    } catch (error) {
+      console.error('Error cargando datos:', error);
+      router.replace('/inicio_ses');
+    }
+  };
+
+  // 1. Cargar datos al montar el componente
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  // 2. Escuchar cambios en el estado de la app
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        loadUserData();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  // 3. Recargar datos cuando la pantalla recibe foco
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUserData();
+    }, [])
+  );
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.clear();
+      router.replace('/inicio_ses');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -36,10 +99,20 @@ export default function PerfilScreen() {
       
       <ScrollView contentContainerStyle={styles.scrollView}>
         <View style={styles.profileContainer}>
-          <Image source={require('../../assets/images/user.png')} style={styles.avatar} />
+          <Image 
+            source={userData.matricula 
+              ? { uri: `https://tu-api.com/avatars/${userData.matricula}.jpg` } 
+              : require('../../assets/images/user.png')} 
+            style={styles.avatar} 
+            onError={() => require('../../assets/images/user.png')}
+          />
           <Text style={styles.rank}>CHIPMUNK EXPLORADOR</Text>
-          <Text style={styles.name}>MEMO M</Text>
-          <Text style={styles.subtitle}>ESTUDIANTE DE SOFTWARE</Text>
+          <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
+            {userData.nombre}
+          </Text>
+          <Text style={styles.subtitle}>
+            ESTUDIANTE DE {userData.carrera.toUpperCase()}
+          </Text>
         </View>
 
         <View style={styles.statsContainer}>
@@ -64,6 +137,7 @@ export default function PerfilScreen() {
             </View>
           )}
           contentContainerStyle={styles.horizontalList}
+          showsHorizontalScrollIndicator={false}
         />
 
         <Text style={styles.sectionTitle}>MIS RESPUESTAS</Text>
@@ -77,6 +151,7 @@ export default function PerfilScreen() {
             </View>
           )}
           contentContainerStyle={styles.horizontalList}
+          showsHorizontalScrollIndicator={false}
         />
 
         <Text style={styles.sectionTitle}>MIS GRUPOS</Text>
@@ -91,7 +166,15 @@ export default function PerfilScreen() {
             </View>
           )}
           contentContainerStyle={styles.horizontalList}
+          showsHorizontalScrollIndicator={false}
         />
+
+        <TouchableOpacity 
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Barra de navegación inferior */}
@@ -113,10 +196,10 @@ export default function PerfilScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F6F1E1', // Un fondo claro, suave y elegante
+    backgroundColor: '#F6F1E1',
   },
   scrollView: {
-    paddingBottom: 80, // Espacio para la barra de navegación inferior
+    paddingBottom: 80,
   },
   header: {
     flexDirection: 'row',
@@ -124,41 +207,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 50,
-    backgroundColor: '#F6F1E1', // Naranja vibrante para la cabecera
+    backgroundColor: '#F6F1E1',
     paddingBottom: 10,
     borderBottomLeftRadius: 15,
     borderBottomRightRadius: 15,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   profileContainer: {
     alignItems: 'center',
     marginBottom: 20,
+    paddingHorizontal: 20,
   },
   avatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
     borderWidth: 3,
-    borderColor: '#FFB74D', // Bordes de avatar dorado suave
+    borderColor: '#FFB74D',
     marginBottom: 10,
+    backgroundColor: '#E0E0E0',
   },
   rank: {
     fontSize: 16,
-    color: '#333', // Texto suave para el rango
+    color: '#FF6B00',
     marginTop: 5,
+    fontWeight: '600',
   },
   name: {
     fontSize: 26,
     fontWeight: 'bold',
     color: '#333',
+    maxWidth: '90%',
   },
   subtitle: {
     fontSize: 14,
-    color: '#333',
+    color: '#666',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    marginTop: 5,
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginVertical: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 15,
+    paddingVertical: 10,
+    marginHorizontal: 20,
+    elevation: 3,
   },
   statBox: {
     alignItems: 'center',
@@ -167,25 +267,27 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1976D2', // Azul suave para las estadísticas
+    color: '#1976D2',
   },
   statText: {
     fontSize: 14,
-    color: '#333',
+    color: '#555',
+    fontWeight: '500',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
-    marginHorizontal: 15,
+    marginHorizontal: 20,
     marginVertical: 10,
+    marginTop: 20,
   },
   card: {
-    backgroundColor: 'rgba(25, 118, 210, 0.7)', // Azul translúcido suave para las tarjetas
+    backgroundColor: 'rgba(25, 118, 210, 0.8)',
     padding: 20,
     borderRadius: 10,
     marginRight: 15,
-    width: 320,
+    width: 300,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
@@ -193,12 +295,12 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   cardText: {
-    color: '#fff', // Texto blanco en las tarjetas
+    color: '#fff',
     fontSize: 14,
     lineHeight: 20,
   },
   groupCard: {
-    backgroundColor: 'rgba(255, 87, 34, 0.7)', // Naranja translúcido para los grupos
+    backgroundColor: 'rgba(255, 87, 34, 0.8)',
     padding: 20,
     borderRadius: 10,
     alignItems: 'center',
@@ -218,16 +320,38 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   horizontalList: {
-    paddingLeft: 15,
+    paddingLeft: 20,
+    paddingBottom: 10,
+    paddingRight: 5,
   },
   navbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,
-    backgroundColor: '#000', // Fondo oscuro para la barra de navegación
+    backgroundColor: '#000',
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  logoutButton: {
+    backgroundColor: '#ff3b30',
+    padding: 15,
+    borderRadius: 25,
+    margin: 20,
+    marginTop: 30,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

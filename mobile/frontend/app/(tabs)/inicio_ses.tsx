@@ -15,13 +15,13 @@ import {
   StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { BackHandler } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import InvalidIdModal from '@/components/InvalidIdModal';
 import IncompleteFieldsModal from '@/components/IncompleteFieldsModal'; // Ajusta la ruta según tu estructura
 import { Ionicons } from '@expo/vector-icons';
 import WelcomeModal from '@/components/WelcomeModal';
-import confettiAnimation from '@/assets/conffeti.json'; // Archivo JSON de Lottie
 
 const API_URL = 'http://192.168.0.101:3001/api/auth';
 const { height: screenHeight } = Dimensions.get('window');
@@ -54,6 +54,22 @@ export default function LoginScreen() {
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const [showInvalidIdModal, setShowInvalidIdModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        // Aquí defines la ruta a la que quieres regresar
+        router.push('/home'); // Cambia '/' por la ruta que deseas
+        return true; // Esto previene el comportamiento por defecto
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      };
+    }, [router])
+  );
 
 
   const validarDatos = () => {

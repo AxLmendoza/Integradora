@@ -1,10 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, BackHandler, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function MenuScreen() {
   const router = useRouter();
+
+  // Bloquear botón de retroceso físico
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        router.push('/grupos'); // Redirige a grupos en lugar de permitir retroceso
+        return true;
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      };
+    }, [router])
+  );
 
   return (
     <ImageBackground
@@ -12,63 +29,72 @@ export default function MenuScreen() {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
+      <View style={styles.overlay} />
       <View style={styles.container}>
-        {/* Encabezado */}
+        {/* Encabezado mejorado */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/grupos')}>
-            <Ionicons name="arrow-back" size={30} color="#000" />
+          <TouchableOpacity 
+            onPress={() => router.push('/grupos')}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={30} color="#fff" />
           </TouchableOpacity>
 
-          {/* Icono de usuario */}
-          <TouchableOpacity onPress={() => router.push('/(tabs)/usuario')}>
-            <Ionicons name="person-sharp" size={30} color="#000" />
+          <Text style={styles.headerTitle}>Menú</Text>
+
+          <TouchableOpacity 
+            onPress={() => router.push('/(tabs)/usuario')}
+            style={styles.userButton}
+          >
+            <Ionicons name="person-sharp" size={30} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        {/* Título MENÚ centrado */}
-        <Text style={styles.title}>MENÚ</Text>
-
-        {/* Opciones del menú */}
+        {/* Opciones del menú simplificado */}
         <View style={styles.menuItems}>
           <TouchableOpacity
             style={styles.menuButton}
             onPress={() => router.push('/(tabs)/usuario')}
+            activeOpacity={0.7}
           >
-            <Ionicons name="person" size={26} color="#fff" />
-            <Text style={styles.menuButtonText}>Cuenta</Text>
+            <View style={styles.buttonContent}>
+              <Ionicons name="person" size={28} color="#ff6b00" />
+              <Text style={styles.menuButtonText}>Mi Cuenta</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#ff6b00" />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.menuButton}
-            onPress={() => router.push('/(tabs)/grupos')}
+            onPress={() => {
+              Alert.alert(
+                'Cerrar sesión',
+                '¿Estás seguro que deseas salir?',
+                [
+                  {
+                    text: 'Cancelar',
+                    style: 'cancel'
+                  },
+                  {
+                    text: 'Salir',
+                    onPress: () => router.push('/inicio_ses')
+                  }
+                ]
+              );
+            }}
+            activeOpacity={0.7}
           >
-            <Ionicons name="shield-checkmark" size={26} color="#fff" />
-            <Text style={styles.menuButtonText}>Privacidad</Text>
+            <View style={styles.buttonContent}>
+              <Ionicons name="exit-outline" size={28} color="#ff6b00" />
+              <Text style={styles.menuButtonText}>Cerrar Sesión</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color="#ff6b00" />
           </TouchableOpacity>
+        </View>
 
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => router.push('/(tabs)/grupos')}
-          >
-            <Ionicons name="book" size={26} color="#fff" />
-            <Text style={styles.menuButtonText}>Publicaciones</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => router.push('/inicio_ses')}
-          >
-            <Ionicons name="exit-outline" size={26} color="#fff" />
-            <Text style={styles.menuButtonText}>Cerrar sesión</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => router.push('/registro')}
-          >
-            <Ionicons name="trash" size={26} color="#fff" />
-            <Text style={styles.menuButtonText}>Eliminar cuenta</Text>
-          </TouchableOpacity>
+        {/* Pie de página con versión */}
+        <View style={styles.footer}>
+          <Text style={styles.versionText}>Versión 1.0.0</Text>
         </View>
       </View>
     </ImageBackground>
@@ -78,56 +104,77 @@ export default function MenuScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between', // Ajuste para crear un espaciado equilibrado
     padding: 20,
   },
   backgroundImage: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 20,
+    width: '100%',
   },
-  
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,165,0,0.3)',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop:10,
-    marginBottom: 10, // Reducido para mejorar el espaciado
-    alignSelf: 'stretch',
+    paddingVertical: 15,
+    marginBottom: 30,
   },
-
-    title: {
-    fontSize: 32, // Aumenté el tamaño del texto
+  backButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  userButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  headerTitle: {
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#fff',
     textAlign: 'center',
-    marginVertical: 10, // Mantuve el margen vertical para separación adecuada
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   menuItems: {
     flex: 1,
     justifyContent: 'flex-start',
-    paddingTop: 10,
   },
   menuButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Fondo oscuro para los botones
-    paddingVertical: 20, // Aumenté el padding vertical
-    marginVertical: 12, // Aumenté el espacio entre los botones
-    borderRadius: 12, // Bordes redondeados más pronunciados
-    elevation: 6, // Sombra más pronunciada para dar el efecto flotante
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    marginBottom: 15,
+    borderRadius: 12,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  buttonContent: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   menuButtonText: {
-    marginLeft: 20, // Aumenté el espacio entre el icono y el texto
-    fontSize: 20, // Aumenté el tamaño del texto
-    color: '#fff',
+    marginLeft: 15,
+    fontSize: 18,
+    color: '#333',
     fontWeight: '500',
   },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  versionText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
 });
-

@@ -20,6 +20,7 @@ import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import CustomModal from '@/components/CustomModal';
 import { Ionicons } from '@expo/vector-icons';
+import { BackHandler } from 'react-native';
 
 const API_URL = 'http://192.168.0.101:3001/api/auth';
 
@@ -71,6 +72,21 @@ export default function RegisterScreen() {
         setIsImageUploaded(false);
       };
     }, [])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        router.push('/home'); // Redirige a la pantalla de inicio de sesión
+        return true; // Evita el comportamiento por defecto
+      };
+  
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      };
+    }, [router])
   );
 
   // Solicitar permisos
