@@ -1,10 +1,85 @@
 import * as React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ImageBackground } from 'react-native';
-import { useRouter } from 'expo-router';
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  TouchableOpacity, 
+  ImageBackground,
+  BackHandler,
+  Animated,
+  Dimensions,
+  Image
+} from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width: screenWidth } = Dimensions.get('window');
+
+type AppRoute = 
+  | '/grupos'
+  | '/chat'
+  | '/elegir'
+  | '/(tabs)/usuario'
+  | '/comunidad'
+  | '/(tabs)/menu';
 
 export default function ElegirScreen() {
     const router = useRouter();
+    const [activeRoute, setActiveRoute] = React.useState<AppRoute>('/elegir');
+    const indicatorPosition = React.useRef(new Animated.Value(2)).current;
+
+    // Mapeo de rutas a posiciones del indicador (0-3)
+    const routePositions: Record<AppRoute, number> = {
+        '/grupos': 0,
+        '/chat': 1,
+        '/elegir': 2,
+        '/(tabs)/usuario': 3,
+        '/comunidad': 2,
+        '/(tabs)/menu': 0
+    };
+
+    // Función para navegar y actualizar el indicador
+    const navigateWithIndicator = (route: AppRoute) => {
+        setActiveRoute(route);
+        
+        // Animación del indicador
+        const position = routePositions[route] || 0;
+        Animated.spring(indicatorPosition, {
+            toValue: position,
+            useNativeDriver: true,
+            speed: 20,
+            bounciness: 0
+        }).start();
+        
+        router.push(route as never);
+    };
+
+    // Manejar el botón físico de retroceso
+    useFocusEffect(
+        React.useCallback(() => {
+            const onBackPress = () => {
+                navigateWithIndicator('/grupos');
+                return true;
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        }, [])
+    );
+
+    // Actualizar la ruta activa cuando se enfoca la pantalla
+    useFocusEffect(
+        React.useCallback(() => {
+            setActiveRoute('/elegir');
+            Animated.spring(indicatorPosition, {
+                toValue: 2,
+                useNativeDriver: true,
+                speed: 20,
+                bounciness: 0
+            }).start();
+        }, [])
+    );
 
     return (
         <View style={styles.container}>
@@ -14,50 +89,118 @@ export default function ElegirScreen() {
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.5)', 'transparent']}
+                    style={styles.gradient}
+                />
+
                 {/* Encabezado */}
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.push('/menu')}>
-                        <Ionicons name="menu" size={30} color="#000" />
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/(tabs)/menu')}
+                        style={styles.headerButton}
+                    >
+                        <Ionicons name="menu" size={30} color="#fff" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/usuario')}>
-                        <Ionicons name="person-sharp" size={30} color="#000" />
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/(tabs)/usuario')}
+                        style={styles.headerButton}
+                    >
+                        <Ionicons name="person-sharp" size={30} color="#fff" />
                     </TouchableOpacity>
                 </View>
 
-                {/* Título */}
-                <Text style={styles.title}>ELIGE QUÉ HACER</Text>
+                {/* Contenido principal */}
+                <View style={styles.content}>
+                    {/* Título */}
+                    <Text style={styles.title}>ELIGE QUÉ HACER</Text>
 
-                {/* Opciones con iconos */}
-                <TouchableOpacity style={styles.option} onPress={() => router.push('/comunidad')}>
-                    <Ionicons name="people-outline" size={24} color="#000" style={styles.icon} />
-                    <View style={styles.optionTextContainer}>
-                        <Text style={styles.optionText}>Comunidad Chipmunks</Text>
-                        <Text style={styles.description}>En esta sección podrás encontrar preguntas para contestar.</Text>
-                    </View>
-                </TouchableOpacity>
+                    {/* Opción de comunidad */}
+                    <TouchableOpacity 
+                        style={styles.optionCard} 
+                        onPress={() => navigateWithIndicator('/comunidad')}
+                    >
+                        <LinearGradient
+                            colors={['rgba(255,165,0,0.7)', 'rgba(255,165,0,0.3)']}
+                            style={styles.optionGradient}
+                        >
+                            <Ionicons name="people" size={40} color="#fff" style={styles.icon} />
+                            <View style={styles.optionTextContainer}>
+                                <Text style={styles.optionTitle}>Comunidad Chipmunks</Text>
+                                <Text style={styles.optionDescription}>
+                                    En esta sección podrás encontrar preguntas para contestar.
+                                </Text>
+                            </View>
+                        </LinearGradient>
+                    </TouchableOpacity>
 
-                <TouchableOpacity style={styles.option} onPress={() => router.push('/compartir_info')}>
-                    <Ionicons name="share-social-outline" size={24} color="#000" style={styles.icon} />
-                    <View style={styles.optionTextContainer}>
-                        <Text style={styles.optionText}>Compartir información</Text>
-                        <Text style={styles.description}>En esta sección podrás compartir tu conocimiento.</Text>
+                    {/* Imagen de la ardilla */}
+                    <View style={styles.imageContainer}>
+                        <Image 
+                            source={require('../../assets/images/ardilla2d.png')}
+                            style={styles.ardillaImage}
+                            resizeMode="contain"
+                        />
                     </View>
-                </TouchableOpacity>
+                </View>
+
+                {/* Barra de navegación */}
+                <View style={styles.navbar}>
+                    <Animated.View 
+                        style={[
+                            styles.navIndicator,
+                            {
+                                transform: [{
+                                    translateX: indicatorPosition.interpolate({
+                                        inputRange: [0, 3],
+                                        outputRange: [0, screenWidth * 0.75]
+                                    })
+                                }]
+                            }
+                        ]}
+                    />
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/grupos')}
+                        style={styles.navButton}
+                    >
+                        <Ionicons 
+                            name="home" 
+                            size={28} 
+                            color={activeRoute === '/grupos' ? '#ff6b00' : '#fff'} 
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/chat')}
+                        style={styles.navButton}
+                    >
+                        <Ionicons 
+                            name="chatbubbles" 
+                            size={28} 
+                            color={activeRoute === '/chat' ? '#ff6b00' : '#fff'} 
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/elegir')}
+                        style={styles.navButton}
+                    >
+                        <Ionicons 
+                            name="add-circle" 
+                            size={28} 
+                            color={activeRoute === '/elegir' ? '#ff6b00' : '#fff'} 
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/(tabs)/usuario')}
+                        style={styles.navButton}
+                    >
+                        <Ionicons 
+                            name="person" 
+                            size={28} 
+                            color={activeRoute === '/(tabs)/usuario' ? '#ff6b00' : '#fff'} 
+                        />
+                    </TouchableOpacity>
+                </View>
             </ImageBackground>
-
-            {/* Barra de navegación */}
-            <View style={styles.navbar}>
-                      <View style={styles.whiteLine}></View>
-                      <TouchableOpacity onPress={() => router.push('/grupos')}>
-                        <Ionicons name="home-outline" size={28} color="#fff" />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => router.push('/chat')}>
-                        <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => router.push('/elegir')}>
-                        <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
-                      </TouchableOpacity>
-                    </View>
         </View>
     );
 }
@@ -68,68 +211,102 @@ const styles = StyleSheet.create({
     },
     backgroundImage: {
         flex: 1,
-        justifyContent: 'flex-start',
-        padding: 20, // Agregado padding para dar espacio entre los elementos y los bordes
     },
-
+    gradient: {
+        ...StyleSheet.absoluteFillObject,
+    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: 30,
+        paddingHorizontal: 20,
+        paddingTop: 40,  // Reducido para subir el encabezado
+        paddingBottom: 10,
     },
-
+    headerButton: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 20,
+        padding: 8,
+    },
+    content: {
+        flex: 1,
+        paddingHorizontal: 30,
+        paddingTop: 20,  // Reducido para subir el contenido
+    },
     title: {
         fontSize: 32,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 50,
-        color: '#000', // Agregado color para el texto
+        marginBottom: 30,  // Reducido para subir el título
+        color: '#fff',
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 5,
     },
-    option: {
-        flexDirection: 'row', // Asegura que el icono y el texto estén en fila
-        alignItems: 'center', // Centra el icono y el texto verticalmente
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 5,
-        marginBottom: 15,
-        backgroundColor: 'rgba(255, 255, 255, 0.7)', // Fondo semitransparente para el texto
+    optionCard: {
+        borderRadius: 15,
+        overflow: 'hidden',
+        marginBottom: 20,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+    },
+    optionGradient: {
+        padding: 25,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     icon: {
-        marginRight: 15, // Espacio entre el icono y el texto
+        marginRight: 20,
     },
     optionTextContainer: {
-        flex: 1, // Asegura que el texto ocupe el espacio restante
+        flex: 1,
     },
-    optionText: {
-        fontSize: 18,
+    optionTitle: {
+        fontSize: 20,
         fontWeight: 'bold',
+        color: '#fff',
+        marginBottom: 8,
     },
-    description: {
+    optionDescription: {
         fontSize: 14,
-        color: '#666',
-        marginTop: 5,
+        color: 'rgba(255, 255, 255, 0.8)',
+        lineHeight: 20,
     },
-
+    imageContainer: {
+        alignItems: 'center',
+        marginTop: 20,
+    },
+    ardillaImage: {
+        width: 200,
+        height: 200,
+    },
     navbar: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        paddingVertical: 15,
+        alignItems: 'center',
+        height: 70,
         backgroundColor: '#000',
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-      },
-      whiteLine: {
-        width: 65,  // Ajusta el ancho de la línea para que solo cubra el ícono de la casa
-        height: 5,
-        backgroundColor: '#fff',
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    navButton: {
+        width: '25%',
+        padding: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    navIndicator: {
         position: 'absolute',
-        top: 0.5, // Esto coloca la línea justo encima del ícono de la casita
-        left: '81%', // Centra la línea horizontalmente
-        marginLeft: -20, // Ajusta el desplazamiento para centrarla exactamente sobre el ícono
-        zIndex: 100, // Asegura que la línea esté encima del ícono
-      },
+        top: 0,
+        width: '25%',
+        height: 3,
+        backgroundColor: '#ff6b00',
+    },
 });

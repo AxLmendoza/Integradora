@@ -8,21 +8,62 @@ import {
     Image,
     TextInput,
     ScrollView,
-    BackHandler
+    BackHandler,
+    Animated,
+    Dimensions
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+const { width: screenWidth } = Dimensions.get('window');
+
+type AppRoute = 
+    | '/grupos'
+    | '/chat'
+    | '/elegir'
+    | '/(tabs)/usuario'
+    | '/verificacion_cod'
+    | '/grupo_detalle'
+    | '/grupos_estu';
+
 export default function GruposEstuScreen() {
     const router = useRouter();
     const [searchQuery, setSearchQuery] = React.useState('');
+    const [activeRoute, setActiveRoute] = React.useState<AppRoute>('/grupos');
+    const indicatorPosition = React.useRef(new Animated.Value(0)).current;
+
+    // Mapeo de rutas a posiciones del indicador (0-3)
+    const routePositions: Record<AppRoute, number> = {
+        '/grupos': 0,
+        '/chat': 1,
+        '/elegir': 2,
+        '/(tabs)/usuario': 3,
+        '/verificacion_cod': 0,
+        '/grupo_detalle': 0,
+        '/grupos_estu': 0
+    };
+
+    // Función para navegar y actualizar el indicador
+    const navigateWithIndicator = (route: AppRoute) => {
+        setActiveRoute(route);
+        router.push(route as never);
+        
+        // Animación del indicador
+        const position = routePositions[route] || 0;
+        Animated.spring(indicatorPosition, {
+            toValue: position,
+            useNativeDriver: true,
+            speed: 20,
+            bounciness: 0
+        }).start();
+    };
 
     // Manejar el botón físico de retroceso
     useFocusEffect(
         React.useCallback(() => {
             const onBackPress = () => {
-                router.push('/grupos');
+                navigateWithIndicator('/grupos');
                 return true;
             };
 
@@ -51,7 +92,7 @@ export default function GruposEstuScreen() {
                 {/* Encabezado */}
                 <View style={styles.header}>
                     <TouchableOpacity 
-                        onPress={() => router.push('/grupos')}
+                        onPress={() => navigateWithIndicator('/grupos')}
                         style={styles.headerButton}
                     >
                         <Ionicons name="arrow-back" size={28} color="#fff" />
@@ -60,7 +101,7 @@ export default function GruposEstuScreen() {
                     <Text style={styles.headerTitle}>Grupos de Estudio</Text>
                     
                     <TouchableOpacity 
-                        onPress={() => router.push('/(tabs)/usuario')}
+                        onPress={() => navigateWithIndicator('/(tabs)/usuario')}
                         style={styles.headerButton}
                     >
                         <Ionicons name="person-sharp" size={28} color="#fff" />
@@ -96,7 +137,7 @@ export default function GruposEstuScreen() {
                                 style={styles.groupCard}
                                 onPress={() => {
                                     if (group.title === 'MATEMÁTICAS SIUUU') {
-                                        router.push('/verificacion_cod');
+                                        navigateWithIndicator('/verificacion_cod');
                                     } else {
                                         router.push({
                                             pathname: '/grupo_detalle',
@@ -130,7 +171,7 @@ export default function GruposEstuScreen() {
                                     onPress={(e) => {
                                         e.stopPropagation();
                                         if (group.title === 'MATEMÁTICAS SIUUU') {
-                                            router.push('/verificacion_cod');
+                                            navigateWithIndicator('/verificacion_cod');
                                         } else {
                                             router.push({
                                                 pathname: '/grupo_detalle',
@@ -154,17 +195,60 @@ export default function GruposEstuScreen() {
                     )}
                 </ScrollView>
 
-                {/* Barra de navegación (mismo diseño que GruposDetalleScreen) */}
+                {/* Barra de navegación mejorada */}
                 <View style={styles.navbar}>
-                    <View style={styles.navIndicator} />
-                    <TouchableOpacity onPress={() => router.push('/grupos')}>
-                        <Ionicons name="home" size={28} color="#fff" />
+                    <Animated.View 
+                        style={[
+                            styles.navIndicator,
+                            {
+                                transform: [{
+                                    translateX: indicatorPosition.interpolate({
+                                        inputRange: [0, 3],
+                                        outputRange: [0, screenWidth * 0.75] // 25% * 3
+                                    })
+                                }]
+                            }
+                        ]}
+                    />
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/grupos')}
+                        style={styles.navButton}
+                    >
+                        <Ionicons 
+                            name="home" 
+                            size={28} 
+                            color={activeRoute === '/grupos' ? '#ff6b00' : '#fff'} 
+                        />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/chat')}>
-                        <Ionicons name="chatbubbles" size={28} color="#fff" />
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/chat')}
+                        style={styles.navButton}
+                    >
+                        <Ionicons 
+                            name="chatbubbles" 
+                            size={28} 
+                            color={activeRoute === '/chat' ? '#ff6b00' : '#fff'} 
+                        />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => router.push('/elegir')}>
-                        <Ionicons name="add-circle" size={28} color="#fff" />
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/elegir')}
+                        style={styles.navButton}
+                    >
+                        <Ionicons 
+                            name="add-circle" 
+                            size={28} 
+                            color={activeRoute === '/elegir' ? '#ff6b00' : '#fff'} 
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        onPress={() => navigateWithIndicator('/(tabs)/usuario')}
+                        style={styles.navButton}
+                    >
+                        <Ionicons 
+                            name="person" 
+                            size={28} 
+                            color={activeRoute === '/(tabs)/usuario' ? '#ff6b00' : '#fff'} 
+                        />
                     </TouchableOpacity>
                 </View>
             </ImageBackground>
@@ -172,7 +256,7 @@ export default function GruposEstuScreen() {
     );
 }
 
-// Datos de grupos
+// Datos de grupos (sin cambios)
 const groups = [
     {
         title: 'PROGRAMACIÓN Y MÁS',
@@ -196,7 +280,7 @@ const groups = [
     }
 ];
 
-// Estilos (consistentes con GruposDetalleScreen)
+// Estilos (actualizados para el navbar)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -317,13 +401,17 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: 'rgba(255, 255, 255, 0.1)',
     },
+    navButton: {
+        width: '25%',
+        padding: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     navIndicator: {
         position: 'absolute',
-        top: -5,
-        left: '10%',
-        width: '20%',
-        height: 5,
-        backgroundColor: '#fff',
-        borderRadius: 3,
+        top: 0,
+        width: '25%',
+        height: 3,
+        backgroundColor: '#ff6b00',
     },
 });

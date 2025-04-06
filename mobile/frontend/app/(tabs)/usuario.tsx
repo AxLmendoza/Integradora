@@ -1,8 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, Image, TouchableOpacity, AppState } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  FlatList, 
+  Image, 
+  TouchableOpacity, 
+  AppState,
+  BackHandler,
+  Animated,
+  Dimensions 
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const { width: screenWidth } = Dimensions.get('window');
+
+type AppRoute = 
+  | '/grupos'
+  | '/chat'
+  | '/elegir'
+  | '/(tabs)/usuario'
+  | '/inicio_ses'
+  | '/menu';
 
 const publicaciones = [
   { id: '1', texto: 'Publicación 1: Programar es el arte de dar instrucciones a una computadora...' },
@@ -27,6 +49,36 @@ export default function PerfilScreen() {
     carrera: 'Cargando...',
     matricula: 'Cargando...'
   });
+  const [activeRoute, setActiveRoute] = useState<AppRoute>('/(tabs)/usuario');
+  const indicatorPosition = useRef(new Animated.Value(3)).current;
+
+  // Mapeo de rutas a posiciones del indicador (0-3)
+  const routePositions: Record<AppRoute, number> = {
+    '/grupos': 0,
+    '/chat': 1,
+    '/elegir': 2,
+    '/(tabs)/usuario': 3,
+    '/inicio_ses': 0,
+    '/menu': 0
+  };
+
+  // Función para navegar y actualizar el indicador
+  const navigateWithIndicator = (route: AppRoute) => {
+    setActiveRoute(route);
+    
+    // Animación del indicador
+    const position = routePositions[route] || 0;
+    Animated.spring(indicatorPosition, {
+      toValue: position,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 0
+    }).start();
+    
+    if (route !== '/(tabs)/usuario') {
+      router.push(route as never);
+    }
+  };
 
   const loadUserData = async () => {
     try {
@@ -51,6 +103,33 @@ export default function PerfilScreen() {
     }
   };
 
+  // Manejar el botón físico de retroceso
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        navigateWithIndicator('/grupos');
+        return true;
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, [])
+  );
+
+  // Actualizar la ruta activa cuando se enfoca la pantalla
+  useFocusEffect(
+    React.useCallback(() => {
+      setActiveRoute('/(tabs)/usuario');
+      Animated.spring(indicatorPosition, {
+        toValue: 3,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: 0
+      }).start();
+      loadUserData();
+    }, [])
+  );
+
   useEffect(() => {
     loadUserData();
   }, []);
@@ -67,20 +146,14 @@ export default function PerfilScreen() {
     };
   }, []);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      loadUserData();
-    }, [])
-  );
-
   return (
     <View style={styles.container}>
       {/* Encabezado */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/grupos')}>
+        <TouchableOpacity onPress={() => navigateWithIndicator('/grupos')}>
           <Ionicons name="arrow-back" size={30} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/menu')}>
+        <TouchableOpacity onPress={() => navigateWithIndicator('/menu')}>
           <Ionicons name="menu" size={30} color="#000" />
         </TouchableOpacity>
       </View>
@@ -103,7 +176,6 @@ export default function PerfilScreen() {
           </Text>
         </View>
 
-        {/* Resto del código permanece igual */}
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>56</Text>
@@ -161,14 +233,58 @@ export default function PerfilScreen() {
 
       {/* Barra de navegación inferior */}
       <View style={styles.navbar}>
-        <TouchableOpacity onPress={() => router.push('/grupos')}>
-          <Ionicons name="home-outline" size={28} color="#fff" />
+        <Animated.View 
+          style={[
+            styles.navIndicator,
+            {
+              transform: [{
+                translateX: indicatorPosition.interpolate({
+                  inputRange: [0, 3],
+                  outputRange: [0, screenWidth * 0.75]
+                })
+              }]
+            }
+          ]}
+        />
+        <TouchableOpacity 
+          onPress={() => navigateWithIndicator('/grupos')}
+          style={styles.navButton}
+        >
+          <Ionicons 
+            name="home" 
+            size={28} 
+            color={activeRoute === '/grupos' ? '#ff6b00' : '#fff'} 
+          />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/chat')}>
-          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#fff" />
+        <TouchableOpacity 
+          onPress={() => navigateWithIndicator('/chat')}
+          style={styles.navButton}
+        >
+          <Ionicons 
+            name="chatbubbles" 
+            size={28} 
+            color={activeRoute === '/chat' ? '#ff6b00' : '#fff'} 
+          />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/elegir')}>
-          <Ionicons name="arrow-up-circle-outline" size={28} color="#fff" />
+        <TouchableOpacity 
+          onPress={() => navigateWithIndicator('/elegir')}
+          style={styles.navButton}
+        >
+          <Ionicons 
+            name="add-circle" 
+            size={28} 
+            color={activeRoute === '/elegir' ? '#ff6b00' : '#fff'} 
+          />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          onPress={() => navigateWithIndicator('/(tabs)/usuario')}
+          style={styles.navButton}
+        >
+          <Ionicons 
+            name="person" 
+            size={28} 
+            color={activeRoute === '/(tabs)/usuario' ? '#ff6b00' : '#fff'} 
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -317,7 +433,8 @@ const styles = StyleSheet.create({
   navbar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 15,
+    alignItems: 'center',
+    height: 70,
     backgroundColor: '#000',
     position: 'absolute',
     bottom: 0,
@@ -325,5 +442,18 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  navButton: {
+    width: '25%',
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navIndicator: {
+    position: 'absolute',
+    top: 0,
+    width: '25%',
+    height: 3,
+    backgroundColor: '#ff6b00',
   },
 });

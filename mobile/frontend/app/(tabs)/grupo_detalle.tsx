@@ -60,7 +60,7 @@ export default function GrupoDetalleScreen() {
                 {/* Barra superior con botones */}
                 <View style={styles.header}>
                     <TouchableOpacity
-                        onPress={() => router.push('/grupos')}
+                        onPress={() => router.push('/grupos_estu')}
                         style={styles.headerButton}
                     >
                         <Ionicons name="arrow-back" size={28} color="#fff" />

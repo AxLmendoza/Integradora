@@ -8,19 +8,19 @@ import {
   Image,
   TextInput,
   Keyboard,
-  Alert,
   ScrollView,
   Dimensions,
   Platform,
   StatusBar,
   BackHandler,
-  AppState
+  AppState,
+  Animated
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type AppRoute = 
+type AppRoute =
   | '/'
   | '/inicio_ses'
   | '/buscar_pre'
@@ -39,6 +39,38 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [carrera, setCarrera] = React.useState<string>('Cargando carrera...');
   const [isLoading, setIsLoading] = React.useState(true);
+  const [activeRoute, setActiveRoute] = React.useState<AppRoute>('/grupos');
+  const indicatorPosition = React.useRef(new Animated.Value(0)).current;
+
+  // Mapeo de rutas a posiciones del indicador (0-3)
+  const routePositions: Record<AppRoute, number> = {
+    '/grupos': 0,
+    '/chat': 1,
+    '/elegir': 2,
+    '/(tabs)/usuario': 3,
+    '/': 0,
+    '/inicio_ses': 0,
+    '/buscar_pre': 0,
+    '/grupos_estu': 0,
+    '/(tabs)/menu': 0
+  };
+
+  // Función para navegar y actualizar el indicador
+  const navigateWithIndicator = (route: AppRoute) => {
+    setActiveRoute(route);
+    setSearchQuery('');
+    
+    // Animación del indicador
+    const position = routePositions[route] || 0;
+    Animated.spring(indicatorPosition, {
+      toValue: position,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 0
+    }).start();
+    
+    router.push(route as never);
+  };
 
   // Función para cargar los datos del usuario
   const loadUserData = async () => {
@@ -81,13 +113,25 @@ export default function HomeScreen() {
     React.useCallback(() => {
       loadUserData();
       setSearchQuery('');
+      // Actualizar ruta activa cuando se enfoca esta pantalla
+      setActiveRoute('/grupos');
+      Animated.spring(indicatorPosition, {
+        toValue: 0,
+        useNativeDriver: true,
+        speed: 20,
+        bounciness: 0
+      }).start();
     }, [])
   );
 
   // Bloquear el botón de retroceso físico
   useFocusEffect(
     React.useCallback(() => {
-      const onBackPress = () => true;
+      const onBackPress = () => {
+        navigateWithIndicator('/grupos');
+        return true;
+      };
+
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
       return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, [])
@@ -104,18 +148,13 @@ export default function HomeScreen() {
     }
   };
 
-  const navigateWithCleanSearch = (route: AppRoute) => {
-    setSearchQuery('');
-    router.push(route as never);
-  };
-
   // Función para formatear el nombre de la carrera
   const formatCarreraName = (name: string) => {
     if (!name) return 'Carrera no especificada';
-    
+
     // Eliminar "INGENIERÍA EN " si existe
     const formatted = name.replace(/INGENIERÍA EN /i, '');
-    
+
     // Convertir a mayúsculas solo la primera letra de cada palabra
     return formatted.split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -130,16 +169,16 @@ export default function HomeScreen() {
         resizeMode="cover"
       >
         <View style={styles.overlay} />
-        
+
         {/* Encabezado mejorado */}
         <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => navigateWithCleanSearch('/(tabs)/menu')}
+          <TouchableOpacity
+            onPress={() => navigateWithIndicator('/(tabs)/menu')}
             style={styles.headerButton}
           >
             <Ionicons name="menu" size={30} color="#000" />
           </TouchableOpacity>
-          
+
           <View style={styles.headerCenter}>
             {!isLoading && (
               <Text style={styles.carreraTitle} numberOfLines={1} ellipsizeMode="tail">
@@ -147,15 +186,15 @@ export default function HomeScreen() {
               </Text>
             )}
           </View>
-          
-          <TouchableOpacity 
-            onPress={() => navigateWithCleanSearch('/(tabs)/usuario')}
+
+          <TouchableOpacity
+            onPress={() => navigateWithIndicator('/(tabs)/usuario')}
             style={styles.headerButton}
           >
             <Ionicons name="person-sharp" size={30} color="#000" />
           </TouchableOpacity>
         </View>
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
         >
@@ -163,7 +202,7 @@ export default function HomeScreen() {
           <View style={styles.searchSection}>
             <Text style={styles.title}>Buscar pregunta</Text>
             <Text style={styles.subtitle}>Encuentra respuestas entre tus compañeros</Text>
-            
+
             <View style={styles.searchContainer}>
               <TextInput
                 style={styles.searchInput}
@@ -174,7 +213,7 @@ export default function HomeScreen() {
                 onSubmitEditing={handleSearchSubmit}
                 returnKeyType="search"
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={handleSearchSubmit}
                 style={styles.searchButton}
               >
@@ -187,9 +226,9 @@ export default function HomeScreen() {
           <View style={styles.cardContainer}>
             <Text style={styles.sectionTitle}>Grupos de estudio</Text>
             <Text style={styles.sectionSubtitle}>Únete a grupos de tu carrera</Text>
-            
-            <TouchableOpacity 
-              onPress={() => navigateWithCleanSearch('/grupos_estu')}
+
+            <TouchableOpacity
+              onPress={() => navigateWithIndicator('/grupos_estu')}
               style={styles.groupsCard}
               activeOpacity={0.8}
             >
@@ -208,27 +247,27 @@ export default function HomeScreen() {
           {/* Sección de accesos rápidos */}
           <View style={styles.quickActions}>
             <Text style={styles.sectionTitle}>Accesos rápidos</Text>
-            
+
             <View style={styles.actionsRow}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => navigateWithCleanSearch('/chat')}
+                onPress={() => navigateWithIndicator('/chat')}
               >
                 <Ionicons name="chatbubbles" size={28} color="#ff6b00" />
                 <Text style={styles.actionText}>Chat</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => navigateWithCleanSearch('/elegir')}
+                onPress={() => navigateWithIndicator('/elegir')}
               >
                 <Ionicons name="add-circle" size={28} color="#ff6b00" />
                 <Text style={styles.actionText}>Nueva Pregunta</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => navigateWithCleanSearch('/grupos')}
+                onPress={() => navigateWithIndicator('/grupos')}
               >
                 <Ionicons name="people" size={28} color="#ff6b00" />
                 <Text style={styles.actionText}>Mis Grupos</Text>
@@ -239,30 +278,58 @@ export default function HomeScreen() {
 
         {/* Barra de navegación mejorada */}
         <View style={styles.navbar}>
-          <View style={styles.navIndicator}></View>
-          <TouchableOpacity 
-            onPress={() => navigateWithCleanSearch('/grupos')}
+          <Animated.View
+            style={[
+              styles.navIndicator,
+              {
+                transform: [{
+                  translateX: indicatorPosition.interpolate({
+                    inputRange: [0, 3],
+                    outputRange: [0, screenWidth * 0.75] // 25% * 3
+                  })
+                }]
+              }
+            ]}
+          />
+          <TouchableOpacity
+            onPress={() => navigateWithIndicator('/grupos')}
             style={styles.navButton}
           >
-            <Ionicons name="home" size={28} color="#fff" />
+            <Ionicons
+              name="home"
+              size={28}
+              color={activeRoute === '/grupos' ? '#ff6b00' : '#fff'}
+            />
           </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => navigateWithCleanSearch('/chat')}
+          <TouchableOpacity
+            onPress={() => navigateWithIndicator('/chat')}
             style={styles.navButton}
           >
-            <Ionicons name="chatbubbles" size={28} color="#fff" />
+            <Ionicons
+              name="chatbubbles"
+              size={28}
+              color={activeRoute === '/chat' ? '#ff6b00' : '#fff'}
+            />
           </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => navigateWithCleanSearch('/elegir')}
+          <TouchableOpacity
+            onPress={() => navigateWithIndicator('/elegir')}
             style={styles.navButton}
           >
-            <Ionicons name="add-circle" size={28} color="#fff" />
+            <Ionicons
+              name="add-circle"
+              size={28}
+              color={activeRoute === '/elegir' ? '#ff6b00' : '#fff'}
+            />
           </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => navigateWithCleanSearch('/(tabs)/usuario')}
+          <TouchableOpacity
+            onPress={() => navigateWithIndicator('/(tabs)/usuario')}
             style={styles.navButton}
           >
-            <Ionicons name="person" size={28} color="#fff" />
+            <Ionicons
+              name="person"
+              size={28}
+              color={activeRoute === '/(tabs)/usuario' ? '#ff6b00' : '#fff'}
+            />
           </TouchableOpacity>
         </View>
       </ImageBackground>
@@ -448,18 +515,16 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.1)',
   },
   navButton: {
+    width: '25%',
     padding: 10,
-    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
   navIndicator: {
     position: 'absolute',
-    top: -5,
-    left: '10%',
-    width: '20%',
-    height: 5,
-    backgroundColor: '#fff',
-    borderRadius: 3,
+    top: 0,
+    width: '25%',
+    height: 3,
+    backgroundColor: '#ff6b00',
   },
 });
