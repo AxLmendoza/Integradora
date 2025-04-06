@@ -77,15 +77,32 @@ export const verifyOTP = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Verificar si el usuario ya existe
-    const [existingUser]: any = await pool.query(
-      "SELECT 1 FROM usuarios WHERE matricula = ? OR correo = ? LIMIT 1",
-      [userData.matricula, userData.correo]
+    const [matriculaExists]: any = await pool.query(
+      "SELECT 1 FROM usuarios WHERE matricula = ? LIMIT 1",
+      [userData.matricula]
     );
-
-    if (existingUser.length > 0) {
-      res.status(400).json({ error: "El usuario ya está registrado." });
+    
+    if (matriculaExists.length > 0) {
+      res.status(400).json({
+        error: "La matrícula ya está registrada.",
+        code: "MATRICULA_ALREADY_REGISTERED",
+      });
       return;
     }
+    
+    const [correoExists]: any = await pool.query(
+      "SELECT 1 FROM usuarios WHERE correo = ? LIMIT 1",
+      [userData.correo]
+    );
+    
+    if (correoExists.length > 0) {
+      res.status(400).json({
+        error: "El correo ya está registrado, por favor ingresa uno diferente.",
+        code: "EMAIL_ALREADY_REGISTERED",
+      });
+      return;
+    }
+    
 
     // Mover usuario a tabla permanente
     await pool.query(
@@ -284,34 +301,59 @@ export const registerUser = async (
     correo = correo.trim().toLowerCase();
     carrera = carrera.trim();
 
-    const [existingUser]: any = await pool.query(
-      "SELECT 1 FROM usuarios WHERE matricula = ? OR correo = ? LIMIT 1",
-      [matricula, correo]
+    const [matriculaExists]: any = await pool.query(
+      "SELECT 1 FROM usuarios WHERE matricula = ? LIMIT 1",
+      [matricula]
     );
-
-    if (existingUser.length > 0) {
+    const [correoExists]: any = await pool.query(
+      "SELECT 1 FROM usuarios WHERE correo = ? LIMIT 1",
+      [correo]
+    );
+    
+    if (matriculaExists.length > 0) {
       res.status(400).json({
-        error: "El usuario ya está registrado.",
-        code: "USER_EXISTS",
+        error: "La matrícula ya está registrada.",
+        code: "MATRICULA_EXISTS",
       });
       return;
     }
+    
+    if (correoExists.length > 0) {
+      res.status(400).json({
+        error: "El correo ya está registrado, por favor ingresa uno diferente.",
+        code: "EMAIL_EXISTS",
+      });
+      return;
+    }
+    
 
     await pool.query("DELETE FROM usuarios_temp WHERE otp_expires < NOW()");
 
-    const [tempUser]: any = await pool.query(
-      "SELECT 1 FROM usuarios_temp WHERE matricula = ? OR correo = ? LIMIT 1",
-      [matricula, correo]
+    const [tempMatricula]: any = await pool.query(
+      "SELECT 1 FROM usuarios_temp WHERE matricula = ? LIMIT 1",
+      [matricula]
     );
-
-    if (tempUser.length > 0) {
+    const [tempCorreo]: any = await pool.query(
+      "SELECT 1 FROM usuarios_temp WHERE correo = ? LIMIT 1",
+      [correo]
+    );
+    
+    if (tempMatricula.length > 0) {
       res.status(400).json({
-        error:
-          "Ya se envió un código de verificación. Revisa tu correo o espera que expire.",
-        code: "PENDING_VERIFICATION",
+        error: "Ya se envió un código para esta matrícula. Verifica tu correo.",
+        code: "PENDING_VERIFICATION_MATRICULA",
       });
       return;
     }
+    
+    if (tempCorreo.length > 0) {
+      res.status(400).json({
+        error: "Ya se envió un código para este correo. Verifica tu correo.",
+        code: "PENDING_VERIFICATION_CORREO",
+      });
+      return;
+    }
+    
 
     const hashedPassword = await hashPassword(password);
     const verificationCode = crypto.randomInt(100000, 999999);

@@ -17,7 +17,11 @@ import {
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import InvalidIdModal from '@/components/InvalidIdModal';
+import IncompleteFieldsModal from '@/components/IncompleteFieldsModal'; // Ajusta la ruta según tu estructura
 import { Ionicons } from '@expo/vector-icons';
+import WelcomeModal from '@/components/WelcomeModal';
+import confettiAnimation from '@/assets/conffeti.json'; // Archivo JSON de Lottie
 
 const API_URL = 'http://192.168.0.101:3001/api/auth';
 const { height: screenHeight } = Dimensions.get('window');
@@ -41,33 +45,28 @@ const showAlert = (title: string, message: string, isError = true) => {
 
 export default function LoginScreen() {
   const router = useRouter();
+  const [userName, setUserName] = useState('');
   const [matricula, setMatricula] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [showIncompleteModal, setShowIncompleteModal] = useState(false);
+  const [showInvalidIdModal, setShowInvalidIdModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
 
   const validarDatos = () => {
     const mat = matricula.trim();
     const pass = password.trim();
 
     if (!mat || !pass) {
-      showAlert('Campos incompletos', 'Por favor ingresa tu matrícula y contraseña.');
+      setShowIncompleteModal(true);
       return false;
     }
 
     if (!/^\d+$/.test(mat)) {
-      showAlert('Matrícula inválida', 'La matrícula debe contener solo números.');
-      return false;
-    }
-
-    if (pass.length < 6) {
-      showAlert('Contraseña insegura', 'La contraseña debe tener al menos 6 caracteres.');
-      return false;
-    }
-
-    if (/['"<>]/.test(pass)) {
-      showAlert('Caracteres no permitidos', 'La contraseña contiene caracteres especiales no permitidos.');
+      setShowInvalidIdModal(true);
       return false;
     }
 
@@ -82,17 +81,17 @@ export default function LoginScreen() {
       const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          matricula: matricula.trim(), 
-          password: password.trim() 
+        body: JSON.stringify({
+          matricula: matricula.trim(),
+          password: password.trim()
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        showAlert('¡Bienvenido!', `Hola ${data.nombre}, estamos cargando tu información...`, false);
-
+        setUserName(data.nombre); // Guarda el nombre en el estado
+        setShowWelcomeModal(true);
         await AsyncStorage.setItem('matricula', data.matricula);
         await AsyncStorage.setItem('token', data.token);
         await AsyncStorage.setItem('nombre', data.nombre);
@@ -131,22 +130,22 @@ export default function LoginScreen() {
       behavior={isAndroid ? 'height' : 'padding'}
       style={styles.container}
       keyboardVerticalOffset={isAndroid ? (StatusBar.currentHeight || 0) + 20 : 0}    >
-      <ImageBackground 
-        source={require('@/assets/images/fondo_registro.jpg')} 
+      <ImageBackground
+        source={require('@/assets/images/fondo_registro.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
         <View style={styles.overlay} />
         <View style={styles.contentContainer}>
-          <Image 
-            source={require('@/assets/images/ardilla.png')} 
-            style={styles.logo} 
-            resizeMode="contain" 
+          <Image
+            source={require('@/assets/images/ardilla.png')}
+            style={styles.logo}
+            resizeMode="contain"
           />
-          
+
           <View style={styles.switchContainer}>
-            <TouchableOpacity 
-              style={styles.switchButtonInactive} 
+            <TouchableOpacity
+              style={styles.switchButtonInactive}
               onPress={() => router.push('/registro')}
             >
               <Text style={styles.switchTextInactive}>Regístrate</Text>
@@ -179,33 +178,23 @@ export default function LoginScreen() {
               onChangeText={setPassword}
               editable={!loading}
             />
-            <TouchableOpacity 
-              style={styles.eyeIcon} 
+            <TouchableOpacity
+              style={styles.eyeIcon}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Ionicons 
-                name={showPassword ? 'eye-off' : 'eye'} 
-                size={20} 
-                color="#666" 
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={20}
+                color="#666"
               />
             </TouchableOpacity>
           </View>
 
           <View style={styles.rememberContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.rememberCheckbox}
               onPress={() => setRememberMe(!rememberMe)}
             >
-              <Ionicons 
-                name={rememberMe ? 'checkbox' : 'square-outline'} 
-                size={20} 
-                color="#ff6b00" 
-              />
-              <Text style={styles.rememberText}>Recordar mis datos</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity onPress={handleForgotPassword}>
-              <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
           </View>
 
@@ -222,6 +211,19 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
       </ImageBackground>
+      <IncompleteFieldsModal
+        visible={showIncompleteModal}
+        onClose={() => setShowIncompleteModal(false)}
+      />
+      <InvalidIdModal
+        visible={showInvalidIdModal}
+        onClose={() => setShowInvalidIdModal(false)}
+      />
+      <WelcomeModal
+        visible={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        userName={userName} // Usa el estado que acabamos de crear
+      />
     </KeyboardAvoidingView>
   );
 }

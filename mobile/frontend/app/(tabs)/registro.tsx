@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
+import CustomModal from '@/components/CustomModal';
 import { Ionicons } from '@expo/vector-icons';
 
 const API_URL = 'http://192.168.0.101:3001/api/auth';
@@ -26,16 +27,9 @@ const API_URL = 'http://192.168.0.101:3001/api/auth';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const isAndroid = Platform.OS === 'android';
 
-// Función para mostrar alerts personalizados
-const showAlert = (title: string, message: string, isError = true) => {
-  Alert.alert(
-    title,
-    message,
-    [{ text: 'OK', style: isError ? 'destructive' : 'default' }]
-  );
-};
 
 export default function RegisterScreen() {
+
   const router = useRouter();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [matricula, setMatricula] = useState('');
@@ -46,6 +40,16 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isImageUploaded, setIsImageUploaded] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const showModal = (title: string, message: string) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalVisible(true);
+  };
+
+
 
   // Limpieza de estados
   useFocusEffect(
@@ -75,7 +79,7 @@ export default function RegisterScreen() {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
-          'Permiso requerido', 
+          'Permiso requerido',
           'Para continuar con tu registro, necesitamos acceso a tu galería para verificar tu credencial.',
           [
             { text: 'Cancelar', style: 'cancel' },
@@ -102,7 +106,7 @@ export default function RegisterScreen() {
         await analyzeImage(asset.base64!);
       }
     } catch (error) {
-      showAlert('Error', 'No se pudo cargar la imagen. Intenta de nuevo.');
+      showModal('Error', 'No se pudo cargar la imagen. Intenta de nuevo.');
     }
   };
 
@@ -140,23 +144,13 @@ export default function RegisterScreen() {
         if (matricula && cleanedName) {
           setMatricula(matricula);
           setNombre(cleanedName);
-          showAlert(
-            'Credencial verificada', 
-            'Hemos extraído tu información correctamente.', 
-            false
-          );
+          showModal('Credencial verificada', 'Hemos extraído tu información correctamente.');;
         } else {
-          showAlert(
-            'Credencial no reconocida', 
-            'Por favor verifica que la imagen sea clara y completa.'
-          );
+          showModal('Credencial no reconocida', 'Por favor verifica que la imagen sea clara y completa.');;
         }
       }
     } catch (error) {
-      showAlert(
-        'Error de conexión', 
-        'No se pudo procesar la imagen. Intenta de nuevo.'
-      );
+      showModal('Error de conexión', 'No se pudo procesar la imagen. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -164,57 +158,37 @@ export default function RegisterScreen() {
 
   const validarDatos = () => {
     if (!matricula || !nombre || !correo || !password || !carrera) {
-      showAlert(
-        'Campos incompletos', 
-        'Todos los campos son obligatorios para registrarte.'
-      );
+      showModal('Campos incompletos', 'Todos los campos son obligatorios para registrarte.');
       return false;
     }
 
     if (!/^\d{8}$/.test(matricula)) {
-      showAlert(
-        'Matrícula inválida', 
-        'La matrícula debe tener exactamente 8 dígitos.'
-      );
+      showModal('Matrícula inválida', 'La matrícula debe tener exactamente 8 dígitos.');
       return false;
     }
 
     if (!/^[A-Za-zÁÉÍÓÚÑáéíóúñ\s]+$/.test(nombre)) {
-      showAlert(
-        'Nombre inválido', 
-        'El nombre solo puede contener letras y espacios.'
-      );
+      showModal('Nombre inválido', 'El nombre solo puede contener letras y espacios.');
       return false;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-      showAlert(
-        'Correo inválido', 
-        'Ingresa un correo electrónico válido (ejemplo@dominio.com).'
-      );
+      showModal('Correo inválido', 'Ingresa un correo electrónico válido (ejemplo@dominio.com).');
       return false;
     }
 
     if (password.length < 6) {
-      showAlert(
-        'Contraseña insegura', 
-        'La contraseña debe tener al menos 6 caracteres.'
-      );
+      showModal('Contraseña insegura', 'La contraseña debe tener al menos 6 caracteres.');
       return false;
     }
 
     if (/['"<>]/.test(password)) {
-      showAlert(
-        'Caracteres no permitidos', 
-        'La contraseña contiene caracteres especiales no permitidos.'
-      );
+      showModal('Caracteres no permitidos', 'La contraseña contiene caracteres especiales no permitidos.');
       return false;
     }
 
     if (!imageUri) {
-      showAlert(
-        'Credencial requerida', 
-        'Debes subir una foto de tu credencial para verificar tu identidad.'
+      showModal('Credencial requerida', 'Debes subir una foto de tu credencial para verificar tu identidad.'
       );
       return false;
     }
@@ -236,26 +210,16 @@ export default function RegisterScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        showAlert(
-          '¡Registro exitoso!', 
-          'Hemos enviado un código de verificación a tu correo.', 
-          false
-        );
+        showModal('¡Registro exitoso!', 'Hemos enviado un código de verificación a tu correo.');
 
         setTimeout(() => {
           router.replace(`/VerifyOtpScreen?correo=${encodeURIComponent(correo)}`);
         }, 2000);
       } else {
-        showAlert(
-          'Error en registro', 
-          data.error || 'No se pudo completar el registro. Intenta de nuevo.'
-        );
+        showModal('Error en registro', data.error || 'No se pudo completar el registro. Intenta de nuevo.');
       }
     } catch (error) {
-      showAlert(
-        'Error de conexión', 
-        'No se pudo conectar con el servidor. Verifica tu conexión.'
-      );
+      showModal('Error de conexión', 'No se pudo conectar con el servidor. Verifica tu conexión.');
     } finally {
       setLoading(false);
     }
@@ -267,17 +231,17 @@ export default function RegisterScreen() {
       style={styles.container}
       keyboardVerticalOffset={isAndroid ? StatusBar.currentHeight : 0}
     >
-      <ImageBackground 
-        source={require('@/assets/images/fondo_registro.jpg')} 
+      <ImageBackground
+        source={require('@/assets/images/fondo_registro.jpg')}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
         <View style={styles.overlay} />
         <View style={styles.contentContainer}>
-          <Image 
-            source={require('@/assets/images/ardilla.png')} 
-            style={styles.logo} 
-            resizeMode="contain" 
+          <Image
+            source={require('@/assets/images/ardilla.png')}
+            style={styles.logo}
+            resizeMode="contain"
           />
 
           <View style={styles.switchContainer}>
@@ -300,10 +264,10 @@ export default function RegisterScreen() {
             onPress={pickImage}
             disabled={loading}
           >
-            <Ionicons 
-              name={isImageUploaded ? 'checkmark-circle' : 'camera'} 
-              size={24} 
-              color="#fff" 
+            <Ionicons
+              name={isImageUploaded ? 'checkmark-circle' : 'camera'}
+              size={24}
+              color="#fff"
               style={styles.buttonIcon}
             />
             <Text style={styles.buttonText}>
@@ -366,14 +330,14 @@ export default function RegisterScreen() {
               onChangeText={setPassword}
               editable={!loading}
             />
-            <TouchableOpacity 
-              style={styles.eyeIcon} 
+            <TouchableOpacity
+              style={styles.eyeIcon}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <Ionicons 
-                name={showPassword ? 'eye-off' : 'eye'} 
-                size={20} 
-                color="#666" 
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={20}
+                color="#666"
               />
             </TouchableOpacity>
           </View>
@@ -391,6 +355,12 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </View>
       </ImageBackground>
+      <CustomModal
+        visible={modalVisible}
+        title={modalTitle}
+        message={modalMessage}
+        onClose={() => setModalVisible(false)}
+      />  
     </KeyboardAvoidingView>
   );
 }

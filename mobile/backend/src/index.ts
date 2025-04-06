@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth";
 import fileRoutes from "./routes/files"; // Se agrega la nueva ruta
 
+
 dotenv.config();
 
 const router = express.Router();
