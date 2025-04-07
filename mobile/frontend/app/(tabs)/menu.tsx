@@ -1,27 +1,84 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, BackHandler, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ImageBackground, 
+  BackHandler, 
+  ActivityIndicator,
+  Modal,
+  Alert
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import LogoutModal from '../../components/CloseSesModal';
 
 export default function MenuScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Bloquear botón de retroceso físico
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        router.push('/grupos'); // Redirige a grupos en lugar de permitir retroceso
+        router.push('/grupos');
         return true;
       };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-      };
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
     }, [router])
   );
+
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = async () => {
+    try {
+      setLoading(true);
+      setShowLogoutModal(false);
+      
+      // Limpiar solo las claves relevantes para mejorar rendimiento
+      await AsyncStorage.multiRemove([
+        'userToken',
+        'userData',
+        'sessionData',
+        'authState',
+        'lastLogin'
+      ]);
+      
+      // Redirigir inmediatamente
+      router.replace({
+        pathname: '/inicio_ses',
+        params: { forceRefresh: Date.now() }
+      });
+      
+      // Mostrar feedback visual breve
+      setShowSuccess(true);
+      const timer = setTimeout(() => {
+        setLoading(false);
+        setShowSuccess(false);
+      }, 800); // Tiempo reducido al mínimo necesario
+      
+      return () => clearTimeout(timer);
+      
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      setLoading(false);
+      Alert.alert('Error', 'Ocurrió un error al cerrar sesión', [
+        {
+          text: 'OK',
+          onPress: () => router.replace('/inicio_ses')
+        }
+      ]);
+    }
+  };
 
   return (
     <ImageBackground
@@ -30,8 +87,47 @@ export default function MenuScreen() {
       resizeMode="cover"
     >
       <View style={styles.overlay} />
+      
+      {/* Modal de carga ultra rápido */}
+      <Modal
+        transparent
+        animationType="none" // Sin animación para máxima velocidad
+        visible={loading}
+        statusBarTranslucent
+      >
+        <View style={styles.loadingContainer}>
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color="#ff6b00" />
+            <Text style={styles.loadingText}>Cerrando sesión...</Text>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Modal de éxito instantáneo */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={showSuccess}
+        statusBarTranslucent
+      >
+        <View style={styles.successContainer}>
+          <View style={styles.successBox}>
+            <Ionicons name="checkmark-circle" size={40} color="#4CAF50" />
+            <Text style={styles.successText}>¡Sesión cerrada!</Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal personalizado de confirmación */}
+      <LogoutModal
+        visible={showLogoutModal}
+        onCancel={() => setShowLogoutModal(false)}
+        onConfirm={confirmLogout}
+        loading={loading}
+      />
+
       <View style={styles.container}>
-        {/* Encabezado mejorado */}
+        {/* Encabezado */}
         <View style={styles.header}>
           <TouchableOpacity 
             onPress={() => router.push('/grupos')}
@@ -50,7 +146,7 @@ export default function MenuScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Opciones del menú simplificado */}
+        {/* Opciones del menú */}
         <View style={styles.menuItems}>
           <TouchableOpacity
             style={styles.menuButton}
@@ -65,34 +161,26 @@ export default function MenuScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => {
-              Alert.alert(
-                'Cerrar sesión',
-                '¿Estás seguro que deseas salir?',
-                [
-                  {
-                    text: 'Cancelar',
-                    style: 'cancel'
-                  },
-                  {
-                    text: 'Salir',
-                    onPress: () => router.push('/inicio_ses')
-                  }
-                ]
-              );
-            }}
+            style={[styles.menuButton, loading && styles.disabledButton]}
+            onPress={handleLogout}
             activeOpacity={0.7}
+            disabled={loading}
           >
             <View style={styles.buttonContent}>
-              <Ionicons name="exit-outline" size={28} color="#ff6b00" />
-              <Text style={styles.menuButtonText}>Cerrar Sesión</Text>
+              {loading ? (
+                <ActivityIndicator size="small" color="#ff6b00" />
+              ) : (
+                <Ionicons name="exit-outline" size={28} color="#ff6b00" />
+              )}
+              <Text style={styles.menuButtonText}>
+                {loading ? 'Cerrando sesión...' : 'Cerrar Sesión'}
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#ff6b00" />
+            {!loading && <Ionicons name="chevron-forward" size={24} color="#ff6b00" />}
           </TouchableOpacity>
         </View>
 
-        {/* Pie de página con versión */}
+        {/* Pie de página */}
         <View style={styles.footer}>
           <Text style={styles.versionText}>Versión 1.0.0</Text>
         </View>
@@ -177,4 +265,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.7)',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  loadingBox: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    minWidth: 200,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#333',
+  },
+  successContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  successBox: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    minWidth: 200,
+  },
+  successText: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  }
 });
