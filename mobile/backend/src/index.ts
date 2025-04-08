@@ -1,38 +1,45 @@
-/* index.ts */
-
-import express from "express";
+// index.ts
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth";
-import fileRoutes from "./routes/files"; // Se agrega la nueva ruta
-
+import fileRoutes from "./routes/files";
+import chatRoutes from "./routes/chat.routes";
 
 dotenv.config();
 
-const router = express.Router();
 const app = express();
 
-app.use(cors({
-  origin: ["http://localhost:8081", "http://192.168.0.101:8081"], // Añade todas las URLs posibles
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
+// 1) CONFIGURAR CORS PARA TODO ORIGEN
+app.use(
+  cors({
+    origin: "*",                   // 🔥 Permite cualquier origen (global)
+    methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+    allowedHeaders: ["Content-Type","Authorization"],
+    credentials: true,
+  })
+);
 
+// 2) RESPONDER PREFLIGHT PARA TODAS LAS RUTAS
+app.options("*", cors());
+
+// 3) MIDDLEWARES
 app.use(express.json());
 
+// 4) RUTAS
 app.use("/api/auth", authRoutes);
-app.use("/api/files", fileRoutes); // Se mantiene la ruta de archivos
+app.use("/api/files", fileRoutes);
+app.use("/api/chat", chatRoutes);
 
-console.log("Rutas disponibles:");
-const routes = app._router.stack
-  .filter((middleware: any) => middleware.route)
-  .map((middleware: any) => ({
-    path: middleware.route.path,
-    method: middleware.route.stack[0].method
-  }));
+// 5) RUTA NO ENCONTRADA
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ message: "Ruta no encontrada" });
+});
 
-console.log(routes)
-
+// 6) MANEJO GLOBAL DE ERRORES
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Error interno del servidor" });
+});
 
 export default app;

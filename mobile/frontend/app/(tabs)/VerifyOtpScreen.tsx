@@ -14,7 +14,7 @@ import {
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-const API_URL = "http://192.168.0.101:3001/api/auth";
+const API_URL = "http://192.168.1.107:3001/api/auth";
 
 // Solución para el error de tipado - usar Record<string, string> en lugar de interfaz
 export default function VerifyOtpScreen() {

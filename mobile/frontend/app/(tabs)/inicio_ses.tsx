@@ -22,7 +22,7 @@ import IncompleteFieldsModal from '@/components/IncompleteFieldsModal';
 import { Ionicons } from '@expo/vector-icons';
 import WelcomeModal from '@/components/WelcomeModal';
 
-const API_URL = 'http://192.168.0.101:3001/api/auth';
+const API_URL = 'http://192.168.1.107:3001/api/auth';
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 const isSmallDevice = screenHeight < 600;
 

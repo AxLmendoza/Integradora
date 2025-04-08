@@ -21,7 +21,7 @@ import * as ImagePicker from 'expo-image-picker';
 import CustomModal from '@/components/CustomModal';
 import { Ionicons } from '@expo/vector-icons';
 
-const API_URL = 'http://192.168.0.101:3001/api/auth';
+const API_URL = 'http://192.168.1.107:3001/api/auth';
 
 // Obtener dimensiones de la pantalla
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');

@@ -236,7 +236,7 @@ export const sendPasswordReset = async (req: Request, res: Response) => {
     const token = crypto.randomBytes(32).toString("hex");
     await saveResetToken(correo, token);
 
-    const resetLink = `http://192.168.0.101:3001/reset-password?token=${token}`;
+    const resetLink = `http://192.168.1.107:3001/reset-password?token=${token}`;
     await sendEmail(
       correo,
       "Restablecer contraseña",
